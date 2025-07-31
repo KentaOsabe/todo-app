@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "5173:5173"
+      - "9229:9229"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    stdin_open: true
+    tty: true
+
+  test:
+    build: .
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run test
+    profiles:
+      - test
+
+  e2e:
+    build: .
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run test:e2e
+    profiles:
+      - e2e
+    depends_on:
+      - app
