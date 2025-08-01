@@ -1,8 +1,12 @@
 import { render, screen, fireEvent } from '@testing-library/react'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { TodoApp } from './TodoApp'
 
 describe('TodoApp', () => {
+  beforeEach(() => {
+    // 各テスト前にlocalStorageをクリア
+    localStorage.clear()
+  })
   // 概要: アプリケーションのタイトルが正しく表示されることを確認
   // 目的: UIの基本構造が正しくレンダリングされることを保証
   it('renders todo app title', () => {
@@ -79,7 +83,7 @@ describe('TodoApp', () => {
 
     expect(screen.getByText('Learn React')).toBeInTheDocument()
 
-    const deleteButton = screen.getByRole('button', { name: /delete/i })
+    const deleteButton = screen.getByLabelText(/delete/i)
     fireEvent.click(deleteButton)
 
     expect(screen.queryByText('Learn React')).not.toBeInTheDocument()

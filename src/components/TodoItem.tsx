@@ -1,3 +1,13 @@
+import {
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Checkbox,
+  IconButton,
+  Typography,
+} from '@mui/material'
+import { Delete as DeleteIcon } from '@mui/icons-material'
 import type { Todo } from '../types/todo'
 
 interface TodoItemProps {
@@ -8,20 +18,42 @@ interface TodoItemProps {
 
 export const TodoItem = ({ todo, onToggle, onDelete }: TodoItemProps) => {
   return (
-    <div>
-      <input
-        type="checkbox"
-        checked={todo.completed}
-        onChange={() => onToggle(todo.id)}
-      />
-      <span
-        style={{
-          textDecoration: todo.completed ? 'line-through' : 'none',
-        }}
-      >
-        {todo.text}
-      </span>
-      <button onClick={() => onDelete(todo.id)}>Delete</button>
-    </div>
+    <ListItem
+      secondaryAction={
+        <IconButton
+          edge="end"
+          aria-label="delete"
+          onClick={() => onDelete(todo.id)}
+          color="error"
+        >
+          <DeleteIcon />
+        </IconButton>
+      }
+      disablePadding
+    >
+      <ListItemButton onClick={() => onToggle(todo.id)} dense>
+        <ListItemIcon>
+          <Checkbox
+            edge="start"
+            checked={todo.completed}
+            tabIndex={-1}
+            disableRipple
+          />
+        </ListItemIcon>
+        <ListItemText
+          primary={
+            <Typography
+              variant="body1"
+              sx={{
+                textDecoration: todo.completed ? 'line-through' : 'none',
+                color: todo.completed ? 'text.secondary' : 'text.primary',
+              }}
+            >
+              {todo.text}
+            </Typography>
+          }
+        />
+      </ListItemButton>
+    </ListItem>
   )
 }

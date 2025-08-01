@@ -6,29 +6,60 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - 常に日本語で会話する
 
+## Development Methodology
+
+### Test-Driven Development (TDD)
+
+**CRITICAL**: 新機能やコンポーネントを追加する際は必ずTDD手法に従うこと。
+
+#### TDD実装手順
+1. **Red**: まずテストを書き、失敗することを確認
+2. **Green**: テストが通る最小限の実装を行う
+3. **Refactor**: コードを改善し、テストが通ることを確認
+4. **Repeat**: 機能が完成するまで繰り返す
+
+#### TDD適用範囲
+- 新しいReactコンポーネントの作成
+- カスタムフックの実装
+- ユーティリティ関数の追加
+- 既存機能の拡張や変更
+
+#### テスト種別
+- **Unit Tests**: Vitestを使用したコンポーネント・フック・関数のテスト
+- **E2E Tests**: Playwrightを使用したユーザーシナリオのテスト
+- テストは機能と同じディレクトリまたは`tests/`ディレクトリに配置
+
 ## Development Commands
 
-### Local Development
+### Docker Development（推奨）
+
+このプロジェクトはDockerでの開発を前提としています。詳細は`Docker.md`を参照してください。
+
+- `docker compose up -d app` - Start containerized development server on localhost:5173
+- `docker compose build --no-cache app` - Rebuild with new dependencies
+- `docker compose down` - Stop all containers
+- `docker compose logs -f app` - View application logs
+
+### Docker Testing
+
+- `docker compose --profile test run --rm test` - Run Vitest unit tests once
+- `docker compose run --rm app npm run test` - Run unit tests in watch mode
+- `docker compose --profile e2e run --rm e2e` - Run Playwright E2E tests (requires app running)
+- `docker compose run --rm app npm run test:e2e:ui` - Run E2E tests with UI mode
+
+### Local Development（非推奨）
+
+直接ローカル環境で実行する場合（依存関係の不整合リスクあり）：
 
 - `npm run dev` - Start Vite development server on localhost:5173
 - `npm run build` - Build for production (TypeScript compilation + Vite build)
 - `npm run lint` - Run ESLint on the codebase
 - `npm run preview` - Preview production build locally
-
-### Testing
-
 - `npm run test` - Run Vitest unit tests in watch mode
 - `npm run test:run` - Run Vitest unit tests once
 - `npm run test:ui` - Launch Vitest UI for interactive testing
 - `npm run test:e2e` - Run Playwright E2E tests (requires dev server running)
 - `npm run test:e2e:ui` - Run Playwright tests with UI mode
-
-### Docker Development
-
-- `docker compose up -d app` - Start containerized development server
-- `docker compose --profile test run test` - Run unit tests in container
-- `docker compose --profile e2e up` - Run E2E tests in container
-- `docker compose down` - Stop all containers
 
 ## Architecture Overview
 
