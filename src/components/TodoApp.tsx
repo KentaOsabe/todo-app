@@ -1,9 +1,7 @@
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import {
   Container,
   Typography,
-  TextField,
-  Button,
   Box,
   List,
   Paper,
@@ -13,19 +11,20 @@ import {
   CssBaseline,
 } from '@mui/material'
 import { 
-  Add as AddIcon,
   DarkMode as DarkModeIcon,
   LightMode as LightModeIcon,
 } from '@mui/icons-material'
 import type { Todo } from '../types/todo'
 import { TodoItem } from './TodoItem'
+import { TodoForm } from './TodoForm'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { useDarkMode } from '../hooks/useDarkMode'
+import { useCategories } from '../hooks/useCategories'
 
 export const TodoApp = () => {
   const [todos, setTodos] = useLocalStorage<Todo[]>('todos', [])
-  const [inputValue, setInputValue] = useState('')
   const { isDarkMode, toggleDarkMode } = useDarkMode()
+  const { categories } = useCategories()
 
   // ダークモードに応じて動的にテーマを作成
   const theme = useMemo(
@@ -44,18 +43,17 @@ export const TodoApp = () => {
     [isDarkMode]
   )
 
-  const handleAddTodo = () => {
-    if (inputValue.trim() === '') return
-
+  const handleAddTodo = (data: { text: string; categoryId?: string; tags: string[] }) => {
     const newTodo: Todo = {
       id: Date.now().toString(),
-      text: inputValue.trim(),
+      text: data.text,
       completed: false,
       createdAt: new Date(),
+      categoryId: data.categoryId,
+      tags: data.tags,
     }
 
     setTodos(prev => [...prev, newTodo])
-    setInputValue('')
   }
 
   const handleToggleTodo = (id: string) => {
@@ -68,12 +66,6 @@ export const TodoApp = () => {
 
   const handleDeleteTodo = (id: string) => {
     setTodos(prev => prev.filter(todo => todo.id !== id))
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleAddTodo()
-    }
   }
 
   return (
@@ -94,26 +86,7 @@ export const TodoApp = () => {
           </IconButton>
         </Box>
         
-        <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder="Add new todo"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-            />
-            <Button
-              variant="contained"
-              onClick={handleAddTodo}
-              startIcon={<AddIcon />}
-              sx={{ minWidth: 120 }}
-            >
-              Add
-            </Button>
-          </Box>
-        </Paper>
+        <TodoForm onSubmit={handleAddTodo} categories={categories} />
 
         {todos.length > 0 && (
           <Paper elevation={2}>
@@ -124,6 +97,7 @@ export const TodoApp = () => {
                   todo={todo}
                   onToggle={handleToggleTodo}
                   onDelete={handleDeleteTodo}
+                  categories={categories}
                 />
               ))}
             </List>

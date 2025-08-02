@@ -7,8 +7,8 @@ test.describe('Todo App E2E Tests', () => {
     await page.goto('/');
 
     await expect(page.getByRole('heading', { name: /todo app/i })).toBeVisible();
-    await expect(page.getByPlaceholder(/add new todo/i)).toBeVisible();
-    await expect(page.getByRole('button', { name: /add/i })).toBeVisible();
+    await expect(page.getByPlaceholder('新しいタスクを入力')).toBeVisible();
+    await expect(page.getByRole('button', { name: '追加' })).toBeVisible();
   });
 
   // 概要: ユーザーが新しいTodoを追加できることをE2Eで確認
@@ -16,8 +16,8 @@ test.describe('Todo App E2E Tests', () => {
   test('should add a new todo', async ({ page }) => {
     await page.goto('/');
 
-    const input = page.getByPlaceholder(/add new todo/i);
-    const addButton = page.getByRole('button', { name: /add/i });
+    const input = page.getByPlaceholder('新しいタスクを入力');
+    const addButton = page.getByRole('button', { name: '追加' });
 
     await input.fill('Learn Playwright');
     await addButton.click();
@@ -31,8 +31,8 @@ test.describe('Todo App E2E Tests', () => {
   test('should toggle todo completion', async ({ page }) => {
     await page.goto('/');
 
-    const input = page.getByPlaceholder(/add new todo/i);
-    const addButton = page.getByRole('button', { name: /add/i });
+    const input = page.getByPlaceholder('新しいタスクを入力');
+    const addButton = page.getByRole('button', { name: '追加' });
 
     await input.fill('Test Todo');
     await addButton.click();
@@ -53,8 +53,8 @@ test.describe('Todo App E2E Tests', () => {
   test('should delete a todo', async ({ page }) => {
     await page.goto('/');
 
-    const input = page.getByPlaceholder(/add new todo/i);
-    const addButton = page.getByRole('button', { name: /add/i });
+    const input = page.getByPlaceholder('新しいタスクを入力');
+    const addButton = page.getByRole('button', { name: '追加' });
 
     await input.fill('Todo to delete');
     await addButton.click();
@@ -72,8 +72,8 @@ test.describe('Todo App E2E Tests', () => {
   test('should handle multiple todos', async ({ page }) => {
     await page.goto('/');
 
-    const input = page.getByPlaceholder(/add new todo/i);
-    const addButton = page.getByRole('button', { name: /add/i });
+    const input = page.getByPlaceholder('新しいタスクを入力');
+    const addButton = page.getByRole('button', { name: '追加' });
 
     // 複数のTodoを追加
     await input.fill('First Todo');
@@ -100,12 +100,70 @@ test.describe('Todo App E2E Tests', () => {
   test('should not add empty todo', async ({ page }) => {
     await page.goto('/');
 
-    const addButton = page.getByRole('button', { name: /add/i });
+    const addButton = page.getByRole('button', { name: '追加' });
 
     // 空の状態でAddボタンをクリック
     await addButton.click();
 
     // チェックボックスが表示されないことを確認（Todoが追加されていない）
     await expect(page.getByRole('checkbox')).toHaveCount(0);
+  });
+
+  // 概要: カテゴリ付きTodoを追加できることをE2Eで確認
+  // 目的: カテゴリ機能がブラウザ環境で正しく動作することを保証
+  test('should add todo with category', async ({ page }) => {
+    await page.goto('/');
+
+    const input = page.getByPlaceholder('新しいタスクを入力');
+    const categorySelect = page.getByLabel('カテゴリ');
+    const addButton = page.getByRole('button', { name: '追加' });
+
+    await input.fill('仕事のタスク');
+    await categorySelect.click();
+    await page.getByText('仕事').click();
+    await addButton.click();
+
+    await expect(page.getByText('仕事のタスク')).toBeVisible();
+    await expect(page.getByText('仕事')).toBeVisible();
+  });
+
+  // 概要: タグ付きTodoを追加できることをE2Eで確認
+  // 目的: タグ機能がブラウザ環境で正しく動作することを保証
+  test('should add todo with tags', async ({ page }) => {
+    await page.goto('/');
+
+    const input = page.getByPlaceholder('新しいタスクを入力');
+    const tagInput = page.getByLabel('タグ');
+    const addButton = page.getByRole('button', { name: '追加' });
+
+    await input.fill('タグ付きタスク');
+    await tagInput.fill('重要, 急ぎ');
+    await addButton.click();
+
+    await expect(page.getByText('タグ付きタスク')).toBeVisible();
+    await expect(page.getByText('重要')).toBeVisible();
+    await expect(page.getByText('急ぎ')).toBeVisible();
+  });
+
+  // 概要: カテゴリとタグの両方を持つTodoを追加できることをE2Eで確認
+  // 目的: カテゴリ・タグ機能の組み合わせがブラウザ環境で正しく動作することを保証
+  test('should add todo with both category and tags', async ({ page }) => {
+    await page.goto('/');
+
+    const input = page.getByPlaceholder('新しいタスクを入力');
+    const categorySelect = page.getByLabel('カテゴリ');
+    const tagInput = page.getByLabel('タグ');
+    const addButton = page.getByRole('button', { name: '追加' });
+
+    await input.fill('完全なタスク');
+    await categorySelect.click();
+    await page.getByText('プライベート').click();
+    await tagInput.fill('買い物, 今日中');
+    await addButton.click();
+
+    await expect(page.getByText('完全なタスク')).toBeVisible();
+    await expect(page.getByText('プライベート')).toBeVisible();
+    await expect(page.getByText('買い物')).toBeVisible();
+    await expect(page.getByText('今日中')).toBeVisible();
   });
 });

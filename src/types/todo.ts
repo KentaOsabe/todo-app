@@ -3,4 +3,6 @@ export interface Todo {
   text: string;
   completed: boolean;
   createdAt: Date;
+  categoryId?: string;
+  tags: string[];
 }
