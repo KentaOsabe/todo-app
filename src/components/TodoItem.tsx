@@ -56,14 +56,14 @@ export const TodoItem = ({ todo, onToggle, onDelete, categories = [] }: TodoItem
                 sx={{
                   textDecoration: todo.completed ? 'line-through' : 'none',
                   color: todo.completed ? 'text.secondary' : 'text.primary',
-                  mb: category || todo.tags.length > 0 ? 1 : 0,
+                  mb: category || (todo.tags && todo.tags.length > 0) ? 1 : 0,
                 }}
               >
                 {todo.text}
               </Typography>
               
               {/* カテゴリとタグのChip表示 */}
-              {(category || todo.tags.length > 0) && (
+              {(category || (todo.tags && todo.tags.length > 0)) && (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                   {/* カテゴリChip */}
                   {category && (
@@ -79,7 +79,7 @@ export const TodoItem = ({ todo, onToggle, onDelete, categories = [] }: TodoItem
                   )}
                   
                   {/* タグChips */}
-                  {todo.tags.length > 0 && (
+                  {todo.tags && todo.tags.length > 0 && (
                     <Box data-testid="tags-container" sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                       {todo.tags.map((tag, index) => (
                         <Chip

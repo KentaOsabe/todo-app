@@ -22,7 +22,26 @@ import { useDarkMode } from '../hooks/useDarkMode'
 import { useCategories } from '../hooks/useCategories'
 
 export const TodoApp = () => {
-  const [todos, setTodos] = useLocalStorage<Todo[]>('todos', [])
+  const [storedTodos, setStoredTodos] = useLocalStorage<Todo[]>('todos', [])
+  
+  // localStorageから読み込んだTodoを正規化（tagsフィールドが欠けている可能性に対応）
+  const todos = useMemo(() => 
+    storedTodos.map(todo => ({
+      ...todo,
+      tags: todo.tags || []
+    }))
+  , [storedTodos])
+  
+  const setTodos = (value: Todo[] | ((prev: Todo[]) => Todo[])) => {
+    if (typeof value === 'function') {
+      setStoredTodos(prev => {
+        const normalized = prev.map(todo => ({ ...todo, tags: todo.tags || [] }))
+        return value(normalized)
+      })
+    } else {
+      setStoredTodos(value)
+    }
+  }
   const { isDarkMode, toggleDarkMode } = useDarkMode()
   const { categories } = useCategories()
 
