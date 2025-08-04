@@ -194,16 +194,20 @@ docker compose run --rm app npm run test:run
 
 ### E2Eテスト（End-to-End Tests）
 
-Playwrightを使用したE2EテストをDockerコンテナ内で実行：
+PlaywrightによるE2EテストはDockerコンテナではなく、ローカル環境で実行することを推奨：
 
 ```bash
-# アプリケーションが起動していることを確認してからE2Eテストを実行
+# アプリケーションをDockerで起動
 docker compose up -d app
-docker compose --profile e2e run --rm e2e
 
-# または、直接コマンドを指定して実行
-docker compose run --rm app npm run test:e2e
+# E2Eテストをローカルで実行（別のターミナル）
+npm run test:e2e
+
+# または、UIモードで実行
+npm run test:e2e:ui
 ```
+
+**注意**: E2Eテストはブラウザが必要なため、ローカル環境での実行が推奨されます。
 
 ### テスト用のワークフロー
 
@@ -216,13 +220,24 @@ docker compose run --rm app npm run test:e2e
    docker compose run --rm app npm run test
    ```
 
-2. **CI/CD用の一括テスト**:
+2. **E2Eテスト用の推奨ワークフロー**:
    ```bash
-   # 全てのテストを順次実行
+   # アプリケーションをDockerで起動
+   docker compose up -d app
+   
+   # E2Eテストをローカルで実行（別のターミナル）
+   npm run test:e2e
+   ```
+
+3. **CI/CD用の一括テスト**:
+   ```bash
+   # 単体テストのみDockerで実行
    docker compose build --no-cache
    docker compose --profile test run --rm test
+   
+   # E2Eテストは別途ローカル環境で実行
    docker compose up -d app
-   docker compose --profile e2e run --rm e2e
+   npm run test:e2e
    docker compose down
    ```
 
@@ -236,9 +251,14 @@ docker compose run --rm app npm run test:e2e
    curl http://localhost:5173
    ```
 
-2. ブラウザのUIを確認したい場合：
+2. ローカルでPlaywrightが正しくインストールされていることを確認：
    ```bash
-   docker compose run --rm app npm run test:e2e:ui
+   npx playwright install
+   ```
+
+3. ブラウザのUIを確認したい場合：
+   ```bash
+   npm run test:e2e:ui
    ```
 
 #### 単体テストでモジュールが見つからない場合
@@ -260,5 +280,5 @@ alias dcdown="docker compose down"
 alias dclogs="docker compose logs -f"
 alias dcps="docker compose ps"
 alias dctest="docker compose --profile test run --rm test"
-alias dce2e="docker compose --profile e2e run --rm e2e"
+alias dce2e="npm run test:e2e"
 ```
