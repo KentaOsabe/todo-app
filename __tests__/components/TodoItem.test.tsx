@@ -1,8 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
-import { TodoItem } from './TodoItem'
-import type { Todo } from '../types/todo'
-import type { Category } from '../types/category'
+import { TodoItem } from '../../src/components/TodoItem'
+import type { Todo } from '../../src/types/todo'
+import type { Category } from '../../src/types/category'
 
 const mockTodo: Todo = {
   id: '1',

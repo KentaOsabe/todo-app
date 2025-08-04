@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
-import { TodoForm } from './TodoForm'
-import type { Category } from '../types/category'
+import { TodoForm } from '../../src/components/TodoForm'
+import type { Category } from '../../src/types/category'
 
 const mockCategories: Category[] = [
   { id: 'work', name: '仕事', color: '#1976d2' },

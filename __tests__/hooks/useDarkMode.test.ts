@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { useDarkMode } from './useDarkMode'
+import { useDarkMode } from '../../src/hooks/useDarkMode'
 
 // localStorageのモック
 const localStorageMock = {

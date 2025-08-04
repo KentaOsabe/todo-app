@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useCategories } from './useCategories';
+import { useCategories } from '../../src/hooks/useCategories';
 
 // localStorageのモック
 const localStorageMock = (() => {
@@ -29,6 +29,8 @@ describe('useCategories', () => {
     localStorage.clear();
   });
 
+  // 概要: 初期状態でデフォルトカテゴリが存在することを確認
+  // 目的: アプリ起動時に必要なカテゴリが自動的に利用可能であることを保証
   it('初期状態でデフォルトカテゴリが存在する', () => {
     const { result } = renderHook(() => useCategories());
 
@@ -38,6 +40,8 @@ describe('useCategories', () => {
     expect(result.current.categories[2].name).toBe('その他');
   });
 
+  // 概要: 新しいカテゴリを追加する機能のテスト
+  // 目的: addCategory関数が正しく動作し、カテゴリが増えることを確認
   it('カテゴリを追加できる', () => {
     const { result } = renderHook(() => useCategories());
 
@@ -50,6 +54,8 @@ describe('useCategories', () => {
     expect(result.current.categories[3].color).toBe('#4caf50');
   });
 
+  // 概要: 重複したカテゴリ名の追加を防ぐ機能のテスト
+  // 目的: 同じ名前のカテゴリが重複して作成されないことを確認
   it('同じ名前のカテゴリは追加できない', () => {
     const { result } = renderHook(() => useCategories());
 
@@ -61,6 +67,8 @@ describe('useCategories', () => {
     expect(result.current.categories).toHaveLength(3);
   });
 
+  // 概要: 既存カテゴリの名前と色を変更する機能のテスト
+  // 目的: updateCategory関数が正しく動作することを確認
   it('カテゴリを更新できる', () => {
     const { result } = renderHook(() => useCategories());
 
@@ -75,6 +83,8 @@ describe('useCategories', () => {
     expect(updatedCategory?.color).toBe('#f44336');
   });
 
+  // 概要: 存在しないカテゴリIDでの更新処理のテスト
+  // 目的: 不正なIDでの更新が安全に無視されることを確認
   it('存在しないカテゴリの更新は無視される', () => {
     const { result } = renderHook(() => useCategories());
     const originalCategories = [...result.current.categories];
@@ -86,6 +96,8 @@ describe('useCategories', () => {
     expect(result.current.categories).toEqual(originalCategories);
   });
 
+  // 概要: カテゴリ削除機能のテスト
+  // 目的: deleteCategory関数が正しく動作し、カテゴリが削除されることを確認
   it('カテゴリを削除できる', () => {
     const { result } = renderHook(() => useCategories());
 
@@ -99,6 +111,8 @@ describe('useCategories', () => {
     expect(result.current.categories.find(c => c.id === categoryToDelete.id)).toBeUndefined();
   });
 
+  // 概要: 存在しないカテゴリIDでの削除処理のテスト
+  // 目的: 不正なIDでの削除が安全に無視されることを確認
   it('存在しないカテゴリの削除は無視される', () => {
     const { result } = renderHook(() => useCategories());
     const originalLength = result.current.categories.length;
@@ -110,6 +124,8 @@ describe('useCategories', () => {
     expect(result.current.categories).toHaveLength(originalLength);
   });
 
+  // 概要: IDによるカテゴリ検索機能のテスト
+  // 目的: getCategoryById関数が正しいカテゴリを返すことを確認
   it('IDでカテゴリを取得できる', () => {
     const { result } = renderHook(() => useCategories());
 
@@ -119,6 +135,8 @@ describe('useCategories', () => {
     expect(foundCategory).toEqual(firstCategory);
   });
 
+  // 概要: 存在しないIDでの検索処理のテスト
+  // 目的: 不正なIDでundefinedが返されることを確認
   it('存在しないIDの場合はundefinedを返す', () => {
     const { result } = renderHook(() => useCategories());
 
@@ -127,6 +145,8 @@ describe('useCategories', () => {
     expect(foundCategory).toBeUndefined();
   });
 
+  // 概要: カテゴリデータの永続化機能のテスト
+  // 目的: 追加したカテゴリがlocalStorageに保存され復元されることを確認
   it('カテゴリがlocalStorageに永続化される', () => {
     const { result } = renderHook(() => useCategories());
 
@@ -141,6 +161,8 @@ describe('useCategories', () => {
     expect(newResult.current.categories[3].name).toBe('テストカテゴリ');
   });
 
+  // 概要: デフォルトカテゴリの色設定のテスト
+  // 目的: 各デフォルトカテゴリが期待される色を持つことを確認
   it('デフォルトカテゴリが正しい色を持つ', () => {
     const { result } = renderHook(() => useCategories());
 

@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, beforeEach } from 'vitest'
-import { TodoApp } from './TodoApp'
+import { TodoApp } from '../../src/components/TodoApp'
 
 describe('TodoApp', () => {
   beforeEach(() => {

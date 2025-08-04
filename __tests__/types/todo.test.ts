@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import type { Todo } from './todo';
+import type { Todo } from '../../src/types/todo';
 
 describe('拡張されたTodo型', () => {
+  // 概要: 拡張されたTodo型の基本プロパティのテスト
+  // 目的: 新しいTodo型が従来の必須プロパティをすべて含んでいることを確認
   it('従来のTodoプロパティを含む', () => {
     const todo: Todo = {
       id: 'todo-1',
@@ -18,6 +20,8 @@ describe('拡張されたTodo型', () => {
     expect(todo).toHaveProperty('createdAt');
   });
 
+  // 概要: categoryIdプロパティのオプショナル性のテスト
+  // 目的: categoryIdがオプショナルであり、ありとなしの両方で正しく動作することを確認
   it('categoryIdプロパティを含む（オプショナル）', () => {
     const todoWithCategory: Todo = {
       id: 'todo-1',
@@ -41,6 +45,8 @@ describe('拡張されたTodo型', () => {
     expect(todoWithoutCategory.categoryId).toBeUndefined();
   });
 
+  // 概要: tagsプロパティの型と動作のテスト
+  // 目的: tagsが文字列配列であり、設定したタグが正しく保持されることを確認
   it('tagsプロパティを含む（文字列配列）', () => {
     const todo: Todo = {
       id: 'todo-1',
@@ -57,6 +63,8 @@ describe('拡張されたTodo型', () => {
     expect(todo.tags).toContain('急ぎ');
   });
 
+  // 概要: tagsプロパティの空配列対応のテスト
+  // 目的: tagsが空配列でも正しく動作することを確認
   it('tagsプロパティは空配列でも有効', () => {
     const todo: Todo = {
       id: 'todo-1',
@@ -71,6 +79,8 @@ describe('拡張されたTodo型', () => {
     expect(todo.tags).toHaveLength(0);
   });
 
+  // 概要: カテゴリとタグの組み合わせのテスト
+  // 目的: categoryIdとtagsの両方を持つTodoが正しく作成できることを確認
   it('カテゴリIDとタグの両方を持つTodoが作成できる', () => {
     const todo: Todo = {
       id: 'todo-1',
@@ -86,6 +96,8 @@ describe('拡張されたTodo型', () => {
     expect(todo.tags).toEqual(['重要', '今日中', 'レビュー']);
   });
 
+  // 概要: 拡張されたTodo型の後方互換性のテスト
+  // 目的: 新しいプロパティを追加しても従来のTodoと互換性が保たれることを確認
   it('従来のTodoとの後方互換性を保つ', () => {
     // categoryIdとtagsなしでも作成可能であることを確認
     const basicTodo = {

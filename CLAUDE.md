@@ -95,6 +95,29 @@ This is a TDD-developed React Todo application with the following architecture:
 - Test files include detailed comments explaining test purpose and goals
 - Full coverage of user interactions and edge cases
 
+##### Test File Documentation Requirements
+
+**CRITICAL**: 新しいテストファイル（*.test.ts, *.test.tsx）を作成する際は、必ず各テストケースに以下の形式でコメントを記載すること：
+
+```typescript
+// 概要: テストの概要説明
+// 目的: テストの目的・確認したい動作
+it('test description', () => {
+  // テスト実装
+})
+```
+
+例：
+```typescript
+// 概要: 初期状態でシステム設定を検出することをテスト
+// 目的: ユーザーのシステム設定（ダークモード）を自動検出することを保証
+it('detects system dark mode preference initially', () => {
+  // テスト実装
+})
+```
+
+この規約により、テストの意図と期待する動作が明確になり、将来のメンテナンスが容易になる。
+
 ### Development Environment
 
 #### VSCode Integration
