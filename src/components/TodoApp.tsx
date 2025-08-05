@@ -17,9 +17,11 @@ import {
 import type { Todo } from '../types/todo'
 import { TodoItem } from './TodoItem'
 import { TodoForm } from './TodoForm'
+import { FilterBar } from './FilterBar'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { useDarkMode } from '../hooks/useDarkMode'
 import { useCategories } from '../hooks/useCategories'
+import { useFilters } from '../hooks/useFilters'
 
 export const TodoApp = () => {
   const [storedTodos, setStoredTodos] = useLocalStorage<Todo[]>('todos', [])
@@ -44,6 +46,7 @@ export const TodoApp = () => {
   }
   const { isDarkMode, toggleDarkMode } = useDarkMode()
   const { categories } = useCategories()
+  const { filters, filteredTodos, updateFilters, resetFilters, availableTags, activeFilterCount } = useFilters(todos)
 
   // ダークモードに応じて動的にテーマを作成
   const theme = useMemo(
@@ -107,10 +110,19 @@ export const TodoApp = () => {
         
         <TodoForm onSubmit={handleAddTodo} categories={categories} />
 
-        {todos.length > 0 && (
+        <FilterBar
+          filters={filters}
+          onFiltersChange={updateFilters}
+          onReset={resetFilters}
+          categories={categories}
+          availableTags={availableTags}
+          activeFilterCount={activeFilterCount}
+        />
+
+        {filteredTodos.length > 0 && (
           <Paper elevation={2}>
             <List>
-              {todos.map(todo => (
+              {filteredTodos.map(todo => (
                 <TodoItem
                   key={todo.id}
                   todo={todo}
@@ -126,6 +138,12 @@ export const TodoApp = () => {
         {todos.length === 0 && (
           <Typography variant="body1" align="center" color="text.secondary" sx={{ mt: 4 }}>
             No todos yet. Add one above to get started!
+          </Typography>
+        )}
+
+        {todos.length > 0 && filteredTodos.length === 0 && (
+          <Typography variant="body1" align="center" color="text.secondary" sx={{ mt: 4 }}>
+            No todos match the current filters.
           </Typography>
         )}
       </Container>

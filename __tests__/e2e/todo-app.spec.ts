@@ -37,7 +37,8 @@ test.describe('Todo App E2E Tests', () => {
     await input.fill('Test Todo');
     await addButton.click();
 
-    const checkbox = page.getByRole('checkbox');
+    // Todo項目のcheckboxを特定（FilterBarのSwitchと区別）
+    const checkbox = page.getByRole('checkbox').last();
     await expect(checkbox).not.toBeChecked();
 
     await checkbox.click();
@@ -90,9 +91,9 @@ test.describe('Todo App E2E Tests', () => {
     await expect(page.getByText('Second Todo')).toBeVisible();
     await expect(page.getByText('Third Todo')).toBeVisible();
 
-    // チェックボックスが3つ表示されることを確認
-    const checkboxes = page.getByRole('checkbox');
-    await expect(checkboxes).toHaveCount(3);
+    // Todo項目のチェックボックスが3つ表示されることを確認（FilterBarのSwitchを除く）
+    const todoCheckboxes = page.locator('[data-indeterminate="false"]');
+    await expect(todoCheckboxes).toHaveCount(3);
   });
 
   // 概要: 空のTodoが追加されないことをE2Eで確認
@@ -105,8 +106,9 @@ test.describe('Todo App E2E Tests', () => {
     // 空の状態でAddボタンをクリック
     await addButton.click();
 
-    // チェックボックスが表示されないことを確認（Todoが追加されていない）
-    await expect(page.getByRole('checkbox')).toHaveCount(0);
+    // Todo項目のチェックボックスが表示されないことを確認（FilterBarのSwitchは除く）
+    const todoCheckboxes = page.locator('[data-indeterminate="false"]');
+    await expect(todoCheckboxes).toHaveCount(0);
   });
 
   // 概要: カテゴリ付きTodoを追加できることをE2Eで確認
@@ -115,7 +117,7 @@ test.describe('Todo App E2E Tests', () => {
     await page.goto('/');
 
     const input = page.getByPlaceholder('新しいタスクを入力');
-    const categorySelect = page.getByLabel('カテゴリ');
+    const categorySelect = page.getByLabel('カテゴリ').first();
     const addButton = page.getByRole('button', { name: '追加' });
 
     await input.fill('仕事のタスク');
@@ -133,7 +135,7 @@ test.describe('Todo App E2E Tests', () => {
     await page.goto('/');
 
     const input = page.getByPlaceholder('新しいタスクを入力');
-    const tagInput = page.getByLabel('タグ');
+    const tagInput = page.getByLabel('タグ').first();
     const addButton = page.getByRole('button', { name: '追加' });
 
     await input.fill('タグ付きタスク');
@@ -150,8 +152,8 @@ test.describe('Todo App E2E Tests', () => {
     await page.goto('/');
 
     const input = page.getByPlaceholder('新しいタスクを入力');
-    const categorySelect = page.getByLabel('カテゴリ');
-    const tagInput = page.getByLabel('タグ');
+    const categorySelect = page.getByLabel('カテゴリ').first();
+    const tagInput = page.getByLabel('タグ').first();
     const addButton = page.getByRole('button', { name: '追加' });
 
     await input.fill('完全なタスク');
@@ -162,5 +164,103 @@ test.describe('Todo App E2E Tests', () => {
 
     await expect(page.getByText('完全なタスク')).toBeVisible();
     // カテゴリとタグ両方を持つTodoが作成されたことを確認（表示確認は単体テストで実施済み）
+  });
+
+  // 概要: フィルターバーが表示され、基本的なフィルター機能が動作することをE2Eで確認
+  // 目的: フィルター機能の主要な動作がブラウザ環境で正しく機能することを保証
+  test('should filter todos by completion status', async ({ page }) => {
+    await page.goto('/');
+
+    const input = page.getByPlaceholder('新しいタスクを入力');
+    const addButton = page.getByRole('button', { name: '追加' });
+
+    // 2つのTodoを追加
+    await input.fill('未完了タスク');
+    await addButton.click();
+    await input.fill('完了予定タスク');
+    await addButton.click();
+
+    // 1つ目のTodoを完了にする（FilterBarのSwitchを除く）
+    const todoCheckbox = page.locator('[data-indeterminate="false"]').first();
+    await todoCheckbox.click();
+
+    // フィルターバーが表示されることを確認
+    await expect(page.getByText('フィルター')).toBeVisible();
+
+    // 完了済みフィルターを選択
+    await page.getByLabel('完了済み').click();
+
+    // 完了済みTodoのみが表示されることを確認（1つ目が完了済み）
+    await expect(page.getByText('未完了タスク')).toBeVisible();
+    await expect(page.getByText('完了予定タスク')).not.toBeVisible();
+
+    // 未完了フィルターを選択
+    await page.getByLabel('未完了').click();
+
+    // 未完了Todoのみが表示されることを確認（2つ目が未完了）
+    await expect(page.getByText('未完了タスク')).not.toBeVisible();
+    await expect(page.getByText('完了予定タスク')).toBeVisible();
+  });
+
+  // 概要: 検索フィルターが正しく動作することをE2Eで確認
+  // 目的: テキスト検索フィルター機能がブラウザ環境で正しく動作することを保証
+  test('should filter todos by search text', async ({ page }) => {
+    await page.goto('/');
+
+    const input = page.getByPlaceholder('新しいタスクを入力');
+    const addButton = page.getByRole('button', { name: '追加' });
+
+    // 複数のTodoを追加
+    await input.fill('React学習');
+    await addButton.click();
+    await input.fill('Vue習得');
+    await addButton.click();
+    await input.fill('JavaScript復習');
+    await addButton.click();
+
+    // 検索フィルターを使用
+    const searchInput = page.getByLabel('検索');
+    await searchInput.fill('React');
+
+    // Reactを含むTodoのみが表示されることを確認
+    await expect(page.getByText('React学習')).toBeVisible();
+    await expect(page.getByText('Vue習得')).not.toBeVisible();
+    await expect(page.getByText('JavaScript復習')).not.toBeVisible();
+
+    // 検索をクリア
+    await searchInput.clear();
+    await searchInput.fill('学習');
+
+    // 学習を含むTodoが表示されることを確認
+    await expect(page.getByText('React学習')).toBeVisible();
+    await expect(page.getByText('Vue習得')).not.toBeVisible();
+    await expect(page.getByText('JavaScript復習')).not.toBeVisible();
+  });
+
+  // 概要: フィルターリセット機能が正しく動作することをE2Eで確認
+  // 目的: フィルター状態をリセットする機能がブラウザ環境で正しく動作することを保証
+  test('should reset filters when reset button is clicked', async ({ page }) => {
+    await page.goto('/');
+
+    const input = page.getByPlaceholder('新しいタスクを入力');
+    const addButton = page.getByRole('button', { name: '追加' });
+
+    // Todoを追加
+    await input.fill('テストタスク');
+    await addButton.click();
+
+    // 検索フィルターを適用
+    const searchInput = page.getByLabel('検索');
+    await searchInput.fill('存在しない');
+
+    // Todoが表示されないことを確認
+    await expect(page.getByText('テストタスク')).not.toBeVisible();
+
+    // リセットボタンをクリック
+    await page.getByText('リセット').click();
+
+    // 検索フィールドがクリアされ、Todoが再表示されることを確認
+    await expect(searchInput).toHaveValue('');
+    await expect(page.getByText('テストタスク')).toBeVisible();
   });
 });

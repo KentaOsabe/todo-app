@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { TodoApp } from '../../src/components/TodoApp'
 
@@ -64,11 +64,17 @@ describe('TodoApp', () => {
     fireEvent.change(input, { target: { value: 'Learn React' } })
     fireEvent.click(addButton)
 
-    const checkbox = screen.getByRole('checkbox')
-    expect(checkbox).not.toBeChecked()
+    // Todo項目のcheckboxを特定（data-testidなどで区別）
+    const todoCheckboxes = screen.getAllByRole('checkbox')
+    const todoCheckbox = todoCheckboxes.find(checkbox => 
+      checkbox.getAttribute('data-indeterminate') === 'false' &&
+      checkbox.tabIndex === -1
+    )
+    
+    expect(todoCheckbox).not.toBeChecked()
 
-    fireEvent.click(checkbox)
-    expect(checkbox).toBeChecked()
+    fireEvent.click(todoCheckbox!)
+    expect(todoCheckbox).toBeChecked()
   })
 
   // 概要: 削除ボタンをクリックしたときにTodoが削除されることを確認
@@ -97,6 +103,117 @@ describe('TodoApp', () => {
 
     fireEvent.click(addButton)
 
-    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+    // FilterBarのSwitchではなく、Todo項目のcheckboxがないことを確認
+    const todoCheckboxes = screen.getAllByRole('checkbox')
+    const todoCheckbox = todoCheckboxes.find(checkbox => 
+      checkbox.getAttribute('data-indeterminate') === 'false' &&
+      checkbox.tabIndex === -1
+    )
+    expect(todoCheckbox).toBeUndefined()
+  })
+
+  // 概要: フィルターバーが表示されることを確認
+  // 目的: フィルター機能のUIが正しく統合されていることを保証
+  it('renders filter bar', () => {
+    render(<TodoApp />)
+    
+    // 完了状態フィルター
+    expect(screen.getByRole('group', { name: /完了状態/i })).toBeInTheDocument()
+    
+    // カテゴリフィルター（FilterBar内の）
+    const categoryFilterElements = screen.getAllByLabelText('カテゴリ')
+    expect(categoryFilterElements.length).toBeGreaterThan(0)
+    
+    // タグフィルター
+    expect(screen.getByRole('combobox', { name: /タグ/i })).toBeInTheDocument()
+    
+    // 検索フィルター
+    expect(screen.getByLabelText(/検索/i)).toBeInTheDocument()
+    
+    // リセットボタン
+    expect(screen.getByText('リセット')).toBeInTheDocument()
+  })
+
+  // 概要: 完了状態フィルターが機能することを確認
+  // 目的: 完了状態によるTodoの絞り込みが正しく動作することを保証
+  it('filters todos by completion status', async () => {
+    render(<TodoApp />)
+    const input = screen.getByPlaceholderText('新しいタスクを入力')
+    const addButton = screen.getByRole('button', { name: '追加' })
+
+    // 2つのTodoを追加
+    fireEvent.change(input, { target: { value: 'Task 1' } })
+    fireEvent.click(addButton)
+    fireEvent.change(input, { target: { value: 'Task 2' } })
+    fireEvent.click(addButton)
+
+    // 1つ目を完了にする
+    const todoCheckboxes = screen.getAllByRole('checkbox')
+    const todoCheckbox = todoCheckboxes.find(checkbox => 
+      checkbox.getAttribute('data-indeterminate') === 'false' &&
+      checkbox.tabIndex === -1
+    )
+    fireEvent.click(todoCheckbox!)
+
+    // 完了済みフィルターを選択
+    const completedButton = screen.getByLabelText('完了済み')
+    fireEvent.click(completedButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('Task 1')).toBeInTheDocument()
+      expect(screen.queryByText('Task 2')).not.toBeInTheDocument()
+    })
+  })
+
+  // 概要: 検索フィルターが機能することを確認
+  // 目的: テキスト検索によるTodoの絞り込みが正しく動作することを保証
+  it('filters todos by search text', async () => {
+    render(<TodoApp />)
+    const input = screen.getByPlaceholderText('新しいタスクを入力')
+    const addButton = screen.getByRole('button', { name: '追加' })
+
+    // 2つのTodoを追加
+    fireEvent.change(input, { target: { value: 'Learn React' } })
+    fireEvent.click(addButton)
+    fireEvent.change(input, { target: { value: 'Learn Vue' } })
+    fireEvent.click(addButton)
+
+    // 検索フィルターを入力
+    const searchInput = screen.getByLabelText(/検索/i)
+    fireEvent.change(searchInput, { target: { value: 'React' } })
+
+    await waitFor(() => {
+      expect(screen.getByText('Learn React')).toBeInTheDocument()
+      expect(screen.queryByText('Learn Vue')).not.toBeInTheDocument()
+    })
+  })
+
+  // 概要: フィルターリセット機能が動作することを確認
+  // 目的: 全てのフィルターが初期状態に戻ることを保証
+  it('resets filters when reset button is clicked', async () => {
+    render(<TodoApp />)
+    const input = screen.getByPlaceholderText('新しいタスクを入力')
+    const addButton = screen.getByRole('button', { name: '追加' })
+
+    // Todoを追加
+    fireEvent.change(input, { target: { value: 'Test Task' } })
+    fireEvent.click(addButton)
+
+    // 検索フィルターを適用
+    const searchInput = screen.getByLabelText(/検索/i)
+    fireEvent.change(searchInput, { target: { value: 'nonexistent' } })
+
+    await waitFor(() => {
+      expect(screen.queryByText('Test Task')).not.toBeInTheDocument()
+    })
+
+    // リセットボタンをクリック
+    const resetButton = screen.getByText('リセット')
+    fireEvent.click(resetButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Task')).toBeInTheDocument()
+      expect(searchInput).toHaveValue('')
+    })
   })
 })
