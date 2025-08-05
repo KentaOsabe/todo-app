@@ -33,7 +33,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Docker Development（推奨）
 
-このプロジェクトはDockerでの開発を前提としています。詳細は`Docker.md`を参照してください。
+**CRITICAL**: このプロジェクトはDockerでの開発を前提としています。ビルド、アプリ起動、テスト実行は必ずDockerコマンドを使用すること。詳細は`Docker.md`を参照してください。
+
+**必須**: ローカルのnpmコマンドは使用せず、以下のDockerコマンドを使用：
+
+**例外**: E2Eテストのみローカル実行（Docker.md参照）：
+- `npm run test:e2e` - E2Eテストをローカルで実行（要アプリ起動）
+- `npm run test:e2e:ui` - E2EテストをUI付きで実行
 
 - `docker compose up -d app` - Start containerized development server on localhost:5173
 - `docker compose build --no-cache app` - Rebuild with new dependencies
@@ -117,6 +123,29 @@ it('detects system dark mode preference initially', () => {
 ```
 
 この規約により、テストの意図と期待する動作が明確になり、将来のメンテナンスが容易になる。
+
+#### テストファイル配置規約
+
+**CRITICAL**: 全てのテストファイル（*.test.ts, *.test.tsx）は必ず`__tests__`ディレクトリ配下に配置すること：
+
+- フックのテスト: `__tests__/hooks/`
+- コンポーネントのテスト: `__tests__/components/`
+- ユーティリティのテスト: `__tests__/utils/`
+- その他のテスト: 対応するソースコードの構造に合わせて`__tests__`配下に配置
+
+```
+__tests__/
+├── hooks/
+│   ├── useTodoSorting.test.ts
+│   └── useFilters.test.ts
+├── components/
+│   ├── TodoApp.test.tsx
+│   └── TodoItem.test.tsx
+└── utils/
+    └── filterLogic.test.ts
+```
+
+この規約により、テストコードが整理され、メンテナンスが容易になる。
 
 ### Development Environment
 

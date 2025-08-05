@@ -14,7 +14,15 @@
       "mcp__playwright__browser_close",
       "mcp__serena__write_memory",
       "mcp__serena__read_memory",
-      "mcp__serena__find_symbol"
+      "mcp__serena__find_symbol",
+      "mcp__serena__replace_symbol_body",
+      "mcp__serena__insert_after_symbol",
+      "mcp__serena__search_for_pattern",
+      "Bash(npx tsc:*)",
+      "Bash(npm run test:e2e:*)",
+      "mcp__playwright__browser_hover",
+      "mcp__playwright__browser_drag",
+      "mcp__playwright__browser_wait_for"
     ],
     "deny": []
   }

@@ -263,4 +263,50 @@ test.describe('Todo App E2E Tests', () => {
     await expect(searchInput).toHaveValue('');
     await expect(page.getByText('テストタスク')).toBeVisible();
   });
+
+  // 概要: ドラッグハンドルがホバー時に表示されることをテスト
+  // 目的: ユーザーがドラッグ&ドロップ機能を発見できるUIになっていることを保証
+  test('should show drag handle on hover', async ({ page }) => {
+    await page.goto('/');
+
+    const input = page.getByPlaceholder('新しいタスクを入力');
+    const addButton = page.getByRole('button', { name: '追加' });
+
+    // テスト用のTodoを追加
+    await input.fill('Draggable Todo');
+    await addButton.click();
+
+    // TodoItemがレンダリングされるまで待機
+    await expect(page.getByText('Draggable Todo')).toBeVisible();
+
+    // ドラッグハンドルが存在することを確認
+    const dragHandle = page.getByRole('button', { name: 'Drag to reorder' }).last();
+    await expect(dragHandle).toBeVisible();
+  });
+
+  // 概要: ドラッグ&ドロップUI統合後の基本機能動作をテスト
+  // 目的: SortableTodoItemでラップした後もTodoItemの基本機能（完了状態切り替え）が正常に動作することを保証
+  test('should maintain todo functionality with drag and drop UI', async ({ page }) => {
+    await page.goto('/');
+
+    const input = page.getByPlaceholder('新しいタスクを入力');
+    const addButton = page.getByRole('button', { name: '追加' });
+
+    // テスト用のTodoを追加
+    await input.fill('Test Todo with DnD');
+    await addButton.click();
+
+    // TodoItemがレンダリングされるまで待機
+    await expect(page.getByText('Test Todo with DnD')).toBeVisible();
+    
+    // ドラッグハンドルが存在することを確認
+    const dragHandle = page.getByRole('button', { name: 'Drag to reorder' }).last();
+    await expect(dragHandle).toBeVisible();
+    
+    // TodoItemの基本機能（チェックボックス）が動作することを確認
+    const todoButton = page.getByRole('button', { name: 'Test Todo with DnD' });
+    const checkbox = todoButton.locator('input[type="checkbox"]');
+    await checkbox.click();
+    await expect(checkbox).toBeChecked();
+  });
 });

@@ -5,4 +5,5 @@ export interface Todo {
   createdAt: Date;
   categoryId?: string;
   tags: string[];
+  order: number;
 }

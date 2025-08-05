@@ -15,29 +15,37 @@ import {
   LightMode as LightModeIcon,
 } from '@mui/icons-material'
 import type { Todo } from '../types/todo'
-import { TodoItem } from './TodoItem'
+import { SortableTodoItem } from './SortableTodoItem'
 import { TodoForm } from './TodoForm'
 import { FilterBar } from './FilterBar'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { useDarkMode } from '../hooks/useDarkMode'
 import { useCategories } from '../hooks/useCategories'
 import { useFilters } from '../hooks/useFilters'
+import { useTodoSorting } from '../hooks/useTodoSorting'
+import { DndContext, closestCenter } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 
 export const TodoApp = () => {
   const [storedTodos, setStoredTodos] = useLocalStorage<Todo[]>('todos', [])
   
-  // localStorageから読み込んだTodoを正規化（tagsフィールドが欠けている可能性に対応）
+  // localStorageから読み込んだTodoを正規化（tagsフィールドとorderフィールドが欠けている可能性に対応）
   const todos = useMemo(() => 
-    storedTodos.map(todo => ({
+    storedTodos.map((todo, index) => ({
       ...todo,
-      tags: todo.tags || []
+      tags: todo.tags || [],
+      order: todo.order !== undefined ? todo.order : index
     }))
   , [storedTodos])
   
   const setTodos = (value: Todo[] | ((prev: Todo[]) => Todo[])) => {
     if (typeof value === 'function') {
       setStoredTodos(prev => {
-        const normalized = prev.map(todo => ({ ...todo, tags: todo.tags || [] }))
+        const normalized = prev.map((todo, index) => ({ 
+          ...todo, 
+          tags: todo.tags || [],
+          order: todo.order !== undefined ? todo.order : index
+        }))
         return value(normalized)
       })
     } else {
@@ -47,6 +55,9 @@ export const TodoApp = () => {
   const { isDarkMode, toggleDarkMode } = useDarkMode()
   const { categories } = useCategories()
   const { filters, filteredTodos, updateFilters, resetFilters, availableTags, activeFilterCount } = useFilters(todos)
+
+  // ドラッグ&ドロップによる並び替え機能
+  const { sortedTodos, handleDragEnd } = useTodoSorting(filteredTodos, setTodos)
 
   // ダークモードに応じて動的にテーマを作成
   const theme = useMemo(
@@ -66,6 +77,7 @@ export const TodoApp = () => {
   )
 
   const handleAddTodo = (data: { text: string; categoryId?: string; tags: string[] }) => {
+    const maxOrder = todos.length > 0 ? Math.max(...todos.map(t => t.order || 0)) : -1
     const newTodo: Todo = {
       id: Date.now().toString(),
       text: data.text,
@@ -73,6 +85,7 @@ export const TodoApp = () => {
       createdAt: new Date(),
       categoryId: data.categoryId,
       tags: data.tags,
+      order: maxOrder + 1,
     }
 
     setTodos(prev => [...prev, newTodo])
@@ -119,19 +132,29 @@ export const TodoApp = () => {
           activeFilterCount={activeFilterCount}
         />
 
-        {filteredTodos.length > 0 && (
+        {sortedTodos.length > 0 && (
           <Paper elevation={2}>
-            <List>
-              {filteredTodos.map(todo => (
-                <TodoItem
-                  key={todo.id}
-                  todo={todo}
-                  onToggle={handleToggleTodo}
-                  onDelete={handleDeleteTodo}
-                  categories={categories}
-                />
-              ))}
-            </List>
+            <DndContext 
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext 
+                items={sortedTodos.map(todo => todo.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <List>
+                  {sortedTodos.map(todo => (
+                    <SortableTodoItem
+                      key={todo.id}
+                      todo={todo}
+                      onToggle={handleToggleTodo}
+                      onDelete={handleDeleteTodo}
+                      categories={categories}
+                    />
+                  ))}
+                </List>
+              </SortableContext>
+            </DndContext>
           </Paper>
         )}
 
@@ -141,7 +164,7 @@ export const TodoApp = () => {
           </Typography>
         )}
 
-        {todos.length > 0 && filteredTodos.length === 0 && (
+        {todos.length > 0 && sortedTodos.length === 0 && (
           <Typography variant="body1" align="center" color="text.secondary" sx={{ mt: 4 }}>
             No todos match the current filters.
           </Typography>
