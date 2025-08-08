@@ -7,7 +7,7 @@ import {
   filterByTags,
   filterBySearch,
   applyFilters,
-  getActiveFilterCount
+  getActiveFilterCount,
 } from '../../src/utils/filterLogic'
 
 const mockTodos: Todo[] = [
@@ -17,7 +17,7 @@ const mockTodos: Todo[] = [
     completed: false,
     createdAt: new Date('2025-01-01'),
     categoryId: 'personal',
-    tags: ['shopping', 'urgent']
+    tags: ['shopping', 'urgent'],
   },
   {
     id: '2',
@@ -25,7 +25,7 @@ const mockTodos: Todo[] = [
     completed: true,
     createdAt: new Date('2025-01-02'),
     categoryId: 'work',
-    tags: ['development', 'urgent']
+    tags: ['development', 'urgent'],
   },
   {
     id: '3',
@@ -33,7 +33,7 @@ const mockTodos: Todo[] = [
     completed: false,
     createdAt: new Date('2025-01-03'),
     categoryId: 'personal',
-    tags: ['learning']
+    tags: ['learning'],
   },
   {
     id: '4',
@@ -41,7 +41,7 @@ const mockTodos: Todo[] = [
     completed: true,
     createdAt: new Date('2025-01-04'),
     categoryId: 'work',
-    tags: ['meeting', 'preparation']
+    tags: ['meeting', 'preparation'],
   },
   {
     id: '5',
@@ -49,8 +49,8 @@ const mockTodos: Todo[] = [
     completed: false,
     createdAt: new Date('2025-01-05'),
     categoryId: undefined,
-    tags: []
-  }
+    tags: [],
+  },
 ]
 
 describe('filterLogic', () => {
@@ -107,7 +107,11 @@ describe('filterLogic', () => {
     it('returns todos with any of specified categories', () => {
       const result = filterByCategories(mockTodos, ['work', 'personal'])
       expect(result).toHaveLength(4)
-      expect(result.every(todo => ['work', 'personal'].includes(todo.categoryId || ''))).toBe(true)
+      expect(
+        result.every(todo =>
+          ['work', 'personal'].includes(todo.categoryId || '')
+        )
+      ).toBe(true)
     })
 
     // 概要: カテゴリ未設定Todoの処理確認
@@ -160,7 +164,7 @@ describe('filterLogic', () => {
   })
 
   describe('filterBySearch', () => {
-    // 概要: 空の検索文字列で全Todoが返されることを確認  
+    // 概要: 空の検索文字列で全Todoが返されることを確認
     // 目的: 検索フィルターが無効時に全Todoが表示されることを保証
     it('returns all todos when search text is empty', () => {
       const result = filterBySearch(mockTodos, '')
@@ -207,7 +211,7 @@ describe('filterLogic', () => {
         categoryIds: [],
         tags: [],
         tagCondition: 'any',
-        searchText: ''
+        searchText: '',
       }
       const result = applyFilters(mockTodos, filters)
       expect(result).toEqual(mockTodos)
@@ -221,11 +225,13 @@ describe('filterLogic', () => {
         categoryIds: ['personal'],
         tags: [],
         tagCondition: 'any',
-        searchText: ''
+        searchText: '',
       }
       const result = applyFilters(mockTodos, filters)
       expect(result).toHaveLength(2)
-      expect(result.every(todo => !todo.completed && todo.categoryId === 'personal')).toBe(true)
+      expect(
+        result.every(todo => !todo.completed && todo.categoryId === 'personal')
+      ).toBe(true)
     })
 
     // 概要: 全フィルター条件の組み合わせ確認
@@ -236,7 +242,7 @@ describe('filterLogic', () => {
         categoryIds: ['personal'],
         tags: ['shopping'],
         tagCondition: 'any',
-        searchText: 'Buy'
+        searchText: 'Buy',
       }
       const result = applyFilters(mockTodos, filters)
       expect(result).toHaveLength(1)
@@ -253,7 +259,7 @@ describe('filterLogic', () => {
         categoryIds: [],
         tags: [],
         tagCondition: 'any',
-        searchText: ''
+        searchText: '',
       }
       const count = getActiveFilterCount(filters)
       expect(count).toBe(0)
@@ -267,7 +273,7 @@ describe('filterLogic', () => {
         categoryIds: [],
         tags: [],
         tagCondition: 'any',
-        searchText: ''
+        searchText: '',
       }
       const count = getActiveFilterCount(filters)
       expect(count).toBe(1)
@@ -281,7 +287,7 @@ describe('filterLogic', () => {
         categoryIds: ['work', 'personal'],
         tags: ['urgent'],
         tagCondition: 'any',
-        searchText: 'test'
+        searchText: 'test',
       }
       const count = getActiveFilterCount(filters)
       expect(count).toBe(4)
@@ -295,7 +301,7 @@ describe('filterLogic', () => {
         categoryIds: [],
         tags: [],
         tagCondition: 'any',
-        searchText: '   '
+        searchText: '   ',
       }
       const count = getActiveFilterCount(filters)
       expect(count).toBe(0)

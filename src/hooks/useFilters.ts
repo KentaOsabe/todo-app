@@ -4,12 +4,12 @@ import type { FilterState } from '../types/filter'
 import { useLocalStorage } from './useLocalStorage'
 
 interface UseFiltersReturn {
-  filters: FilterState;
-  updateFilters: (filters: Partial<FilterState>) => void;
-  resetFilters: () => void;
-  filteredTodos: Todo[];
-  availableTags: string[];
-  activeFilterCount: number;
+  filters: FilterState
+  updateFilters: (filters: Partial<FilterState>) => void
+  resetFilters: () => void
+  filteredTodos: Todo[]
+  availableTags: string[]
+  activeFilterCount: number
 }
 
 const defaultFilters: FilterState = {
@@ -17,11 +17,14 @@ const defaultFilters: FilterState = {
   categoryIds: [],
   tags: [],
   tagCondition: 'any',
-  searchText: ''
+  searchText: '',
 }
 
 export const useFilters = (todos: Todo[]): UseFiltersReturn => {
-  const [filters, setStoredFilters] = useLocalStorage<FilterState>('todoFilters', defaultFilters)
+  const [filters, setStoredFilters] = useLocalStorage<FilterState>(
+    'todoFilters',
+    defaultFilters
+  )
 
   const updateFilters = (newFilters: Partial<FilterState>) => {
     setStoredFilters(prev => ({ ...prev, ...newFilters }))
@@ -34,11 +37,16 @@ export const useFilters = (todos: Todo[]): UseFiltersReturn => {
   const filteredTodos = useMemo(() => {
     return todos.filter(todo => {
       // 完了状態フィルター
-      if (filters.completionStatus === 'completed' && !todo.completed) return false
-      if (filters.completionStatus === 'incomplete' && todo.completed) return false
+      if (filters.completionStatus === 'completed' && !todo.completed)
+        return false
+      if (filters.completionStatus === 'incomplete' && todo.completed)
+        return false
 
       // カテゴリフィルター
-      if (filters.categoryIds.length > 0 && !filters.categoryIds.includes(todo.categoryId || '')) {
+      if (
+        filters.categoryIds.length > 0 &&
+        !filters.categoryIds.includes(todo.categoryId || '')
+      ) {
         return false
       }
 
@@ -54,7 +62,10 @@ export const useFilters = (todos: Todo[]): UseFiltersReturn => {
       }
 
       // テキスト検索フィルター
-      if (filters.searchText && !todo.text.toLowerCase().includes(filters.searchText.toLowerCase())) {
+      if (
+        filters.searchText &&
+        !todo.text.toLowerCase().includes(filters.searchText.toLowerCase())
+      ) {
         return false
       }
 
@@ -85,6 +96,6 @@ export const useFilters = (todos: Todo[]): UseFiltersReturn => {
     resetFilters,
     filteredTodos,
     availableTags,
-    activeFilterCount
+    activeFilterCount,
   }
 }

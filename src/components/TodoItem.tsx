@@ -9,37 +9,82 @@ import {
   Chip,
   Box,
 } from '@mui/material'
-import { Delete as DeleteIcon } from '@mui/icons-material'
-import type { Todo } from '../types/todo'
+import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material'
+import type { Todo, EditTodoData } from '../types/todo'
 import type { Category } from '../types/category'
+import { TodoEditForm } from './TodoEditForm'
+import { useEditTodo } from '../hooks/useEditTodo'
 
 interface TodoItemProps {
   todo: Todo
   onToggle: (id: string) => void
   onDelete: (id: string) => void
+  onEdit?: (id: string, data: EditTodoData) => void
   categories?: Category[]
 }
 
-export const TodoItem = ({ todo, onToggle, onDelete, categories = [] }: TodoItemProps) => {
-  const category = todo.categoryId 
+export const TodoItem = ({
+  todo,
+  onToggle,
+  onDelete,
+  onEdit,
+  categories = [],
+}: TodoItemProps) => {
+  const category = todo.categoryId
     ? categories.find(cat => cat.id === todo.categoryId)
     : undefined
+
+  const editTodo = useEditTodo(todo, onEdit || (() => {}))
+
+  const handleDoubleClick = () => {
+    if (onEdit) {
+      editTodo.startEdit()
+    }
+  }
+
+  if (editTodo.isEditing) {
+    return (
+      <TodoEditForm
+        editData={editTodo.editData}
+        categories={categories}
+        onSave={editTodo.saveEdit}
+        onCancel={editTodo.cancelEdit}
+        onUpdateData={editTodo.updateEditData}
+      />
+    )
+  }
 
   return (
     <ListItem
       secondaryAction={
-        <IconButton
-          edge="end"
-          aria-label="delete"
-          onClick={() => onDelete(todo.id)}
-          color="error"
-        >
-          <DeleteIcon />
-        </IconButton>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          {onEdit && (
+            <IconButton
+              edge="end"
+              aria-label="edit"
+              onClick={editTodo.startEdit}
+              color="primary"
+            >
+              <EditIcon />
+            </IconButton>
+          )}
+          <IconButton
+            edge="end"
+            aria-label="delete"
+            onClick={() => onDelete(todo.id)}
+            color="error"
+          >
+            <DeleteIcon />
+          </IconButton>
+        </Box>
       }
       disablePadding
     >
-      <ListItemButton onClick={() => onToggle(todo.id)} dense>
+      <ListItemButton
+        onClick={() => onToggle(todo.id)}
+        onDoubleClick={handleDoubleClick}
+        dense
+      >
         <ListItemIcon>
           <Checkbox
             edge="start"
@@ -61,7 +106,7 @@ export const TodoItem = ({ todo, onToggle, onDelete, categories = [] }: TodoItem
               >
                 {todo.text}
               </Typography>
-              
+
               {/* カテゴリとタグのChip表示 */}
               {(category || (todo.tags && todo.tags.length > 0)) && (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
@@ -77,10 +122,13 @@ export const TodoItem = ({ todo, onToggle, onDelete, categories = [] }: TodoItem
                       }}
                     />
                   )}
-                  
+
                   {/* タグChips */}
                   {todo.tags && todo.tags.length > 0 && (
-                    <Box data-testid="tags-container" sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    <Box
+                      data-testid="tags-container"
+                      sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}
+                    >
                       {todo.tags.map((tag, index) => (
                         <Chip
                           key={index}

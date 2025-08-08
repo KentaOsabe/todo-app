@@ -4,9 +4,6 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Autocomplete,
   TextField,
   Button,
@@ -14,19 +11,22 @@ import {
   Typography,
   Chip,
   Switch,
-  FormControlLabel
+  FormControlLabel,
 } from '@mui/material'
-import { FilterList as FilterIcon, Clear as ClearIcon } from '@mui/icons-material'
+import {
+  FilterList as FilterIcon,
+  Clear as ClearIcon,
+} from '@mui/icons-material'
 import type { FilterState } from '../types/filter'
 import type { Category } from '../types/category'
 
 interface FilterBarProps {
-  filters: FilterState;
-  onFiltersChange: (filters: Partial<FilterState>) => void;
-  onReset: () => void;
-  categories: Category[];
-  availableTags: string[];
-  activeFilterCount: number;
+  filters: FilterState
+  onFiltersChange: (filters: Partial<FilterState>) => void
+  onReset: () => void
+  categories: Category[]
+  availableTags: string[]
+  activeFilterCount: number
 }
 
 export const FilterBar = ({
@@ -35,7 +35,7 @@ export const FilterBar = ({
   onReset,
   categories,
   availableTags,
-  activeFilterCount
+  activeFilterCount,
 }: FilterBarProps) => {
   const handleCompletionStatusChange = (
     _event: React.MouseEvent<HTMLElement>,
@@ -46,13 +46,19 @@ export const FilterBar = ({
     }
   }
 
-  const handleCategoriesChange = (_event: any, newValue: Category[]) => {
-    onFiltersChange({ 
-      categoryIds: newValue.map(category => category.id)
+  const handleCategoriesChange = (
+    _event: React.SyntheticEvent,
+    newValue: Category[]
+  ) => {
+    onFiltersChange({
+      categoryIds: newValue.map(category => category.id),
     })
   }
 
-  const handleTagsChange = (_event: any, newTags: string[]) => {
+  const handleTagsChange = (
+    _event: React.SyntheticEvent,
+    newTags: string[]
+  ) => {
     onFiltersChange({ tags: newTags })
   }
 
@@ -60,15 +66,17 @@ export const FilterBar = ({
     onFiltersChange({ searchText: event.target.value })
   }
 
-  const handleTagConditionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTagConditionChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     onFiltersChange({ tagCondition: event.target.checked ? 'all' : 'any' })
   }
 
   return (
     <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <Badge 
-          badgeContent={activeFilterCount > 0 ? activeFilterCount : undefined} 
+        <Badge
+          badgeContent={activeFilterCount > 0 ? activeFilterCount : undefined}
           color="primary"
           sx={{ mr: 1 }}
         >
@@ -89,7 +97,14 @@ export const FilterBar = ({
         </Button>
       </Box>
 
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'flex-start' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 2,
+          alignItems: 'flex-start',
+        }}
+      >
         {/* 完了状態フィルター */}
         <FormControl>
           <Typography variant="subtitle2" gutterBottom>
@@ -119,9 +134,11 @@ export const FilterBar = ({
           <Autocomplete
             multiple
             options={categories}
-            value={categories.filter(cat => filters.categoryIds.includes(cat.id))}
+            value={categories.filter(cat =>
+              filters.categoryIds.includes(cat.id)
+            )}
             onChange={handleCategoriesChange}
-            getOptionLabel={(option) => option.name}
+            getOptionLabel={option => option.name}
             renderTags={(tagValue, getTagProps) =>
               tagValue.map((option, index) => (
                 <Chip
@@ -133,12 +150,8 @@ export const FilterBar = ({
                 />
               ))
             }
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="カテゴリ"
-                size="small"
-              />
+            renderInput={params => (
+              <TextField {...params} label="カテゴリ" size="small" />
             )}
             renderOption={(props, option) => (
               <li {...props} key={option.id}>
@@ -169,7 +182,7 @@ export const FilterBar = ({
                 />
               ))
             }
-            renderInput={(params) => (
+            renderInput={params => (
               <TextField
                 {...params}
                 label="タグ"

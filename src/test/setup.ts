@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom'
+import '@testing-library/jest-dom/vitest'
 
 // matchMediaのモック - ダークモード機能のテストに必要
 Object.defineProperty(window, 'matchMedia', {

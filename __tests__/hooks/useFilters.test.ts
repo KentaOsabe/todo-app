@@ -10,7 +10,7 @@ const mockTodos: Todo[] = [
     completed: false,
     createdAt: new Date('2025-01-01'),
     categoryId: 'personal',
-    tags: ['shopping', 'urgent']
+    tags: ['shopping', 'urgent'],
   },
   {
     id: '2',
@@ -18,7 +18,7 @@ const mockTodos: Todo[] = [
     completed: true,
     createdAt: new Date('2025-01-02'),
     categoryId: 'work',
-    tags: ['development', 'urgent']
+    tags: ['development', 'urgent'],
   },
   {
     id: '3',
@@ -26,7 +26,7 @@ const mockTodos: Todo[] = [
     completed: false,
     createdAt: new Date('2025-01-03'),
     categoryId: 'personal',
-    tags: ['learning']
+    tags: ['learning'],
   },
   {
     id: '4',
@@ -34,8 +34,8 @@ const mockTodos: Todo[] = [
     completed: true,
     createdAt: new Date('2025-01-04'),
     categoryId: 'work',
-    tags: ['meeting', 'preparation']
-  }
+    tags: ['meeting', 'preparation'],
+  },
 ]
 
 describe('useFilters', () => {
@@ -47,7 +47,7 @@ describe('useFilters', () => {
   // 目的: フックが正しく初期化され、全てのTodoが表示されることを保証
   it('初期状態では全てのTodoが表示される', () => {
     const { result } = renderHook(() => useFilters(mockTodos))
-    
+
     expect(result.current.filters.completionStatus).toBe('all')
     expect(result.current.filters.categoryIds).toEqual([])
     expect(result.current.filters.tags).toEqual([])
@@ -61,13 +61,15 @@ describe('useFilters', () => {
   // 目的: 完了済みのTodoのみが正しくフィルタリングされることを保証
   it('完了状態でフィルタリングできる', () => {
     const { result } = renderHook(() => useFilters(mockTodos))
-    
+
     act(() => {
       result.current.updateFilters({ completionStatus: 'completed' })
     })
-    
+
     expect(result.current.filteredTodos).toHaveLength(2)
-    expect(result.current.filteredTodos.every(todo => todo.completed)).toBe(true)
+    expect(result.current.filteredTodos.every(todo => todo.completed)).toBe(
+      true
+    )
     expect(result.current.activeFilterCount).toBe(1)
   })
 
@@ -75,13 +77,15 @@ describe('useFilters', () => {
   // 目的: 未完了のTodoのみが正しくフィルタリングされることを保証
   it('未完了状態でフィルタリングできる', () => {
     const { result } = renderHook(() => useFilters(mockTodos))
-    
+
     act(() => {
       result.current.updateFilters({ completionStatus: 'incomplete' })
     })
-    
+
     expect(result.current.filteredTodos).toHaveLength(2)
-    expect(result.current.filteredTodos.every(todo => !todo.completed)).toBe(true)
+    expect(result.current.filteredTodos.every(todo => !todo.completed)).toBe(
+      true
+    )
     expect(result.current.activeFilterCount).toBe(1)
   })
 
@@ -89,13 +93,15 @@ describe('useFilters', () => {
   // 目的: 指定したカテゴリのTodoのみが正しくフィルタリングされることを保証
   it('カテゴリでフィルタリングできる', () => {
     const { result } = renderHook(() => useFilters(mockTodos))
-    
+
     act(() => {
       result.current.updateFilters({ categoryIds: ['work'] })
     })
-    
+
     expect(result.current.filteredTodos).toHaveLength(2)
-    expect(result.current.filteredTodos.every(todo => todo.categoryId === 'work')).toBe(true)
+    expect(
+      result.current.filteredTodos.every(todo => todo.categoryId === 'work')
+    ).toBe(true)
     expect(result.current.activeFilterCount).toBe(1)
   })
 
@@ -103,15 +109,15 @@ describe('useFilters', () => {
   // 目的: 指定したタグのいずれかを持つTodoが正しくフィルタリングされることを保証
   it('タグでフィルタリングできる（any条件）', () => {
     const { result } = renderHook(() => useFilters(mockTodos))
-    
+
     act(() => {
       result.current.updateFilters({ tags: ['urgent'], tagCondition: 'any' })
     })
-    
+
     expect(result.current.filteredTodos).toHaveLength(2)
-    expect(result.current.filteredTodos.every(todo => 
-      todo.tags.includes('urgent')
-    )).toBe(true)
+    expect(
+      result.current.filteredTodos.every(todo => todo.tags.includes('urgent'))
+    ).toBe(true)
     expect(result.current.activeFilterCount).toBe(1)
   })
 
@@ -119,11 +125,14 @@ describe('useFilters', () => {
   // 目的: 指定したタグを全て持つTodoが正しくフィルタリングされることを保証
   it('タグでフィルタリングできる（all条件）', () => {
     const { result } = renderHook(() => useFilters(mockTodos))
-    
+
     act(() => {
-      result.current.updateFilters({ tags: ['urgent', 'shopping'], tagCondition: 'all' })
+      result.current.updateFilters({
+        tags: ['urgent', 'shopping'],
+        tagCondition: 'all',
+      })
     })
-    
+
     expect(result.current.filteredTodos).toHaveLength(1)
     expect(result.current.filteredTodos[0].id).toBe('1')
     expect(result.current.activeFilterCount).toBe(1)
@@ -133,11 +142,11 @@ describe('useFilters', () => {
   // 目的: 指定したテキストを含むTodoが正しくフィルタリングされることを保証
   it('テキスト検索でフィルタリングできる', () => {
     const { result } = renderHook(() => useFilters(mockTodos))
-    
+
     act(() => {
       result.current.updateFilters({ searchText: 'bug' })
     })
-    
+
     expect(result.current.filteredTodos).toHaveLength(1)
     expect(result.current.filteredTodos[0].text).toContain('bug')
     expect(result.current.activeFilterCount).toBe(1)
@@ -147,18 +156,20 @@ describe('useFilters', () => {
   // 目的: 複数の条件を同時に適用したフィルタリングが正しく動作することを保証
   it('複数フィルターの組み合わせが可能', () => {
     const { result } = renderHook(() => useFilters(mockTodos))
-    
+
     act(() => {
-      result.current.updateFilters({ 
+      result.current.updateFilters({
         completionStatus: 'incomplete',
-        categoryIds: ['personal']
+        categoryIds: ['personal'],
       })
     })
-    
+
     expect(result.current.filteredTodos).toHaveLength(2)
-    expect(result.current.filteredTodos.every(todo => 
-      !todo.completed && todo.categoryId === 'personal'
-    )).toBe(true)
+    expect(
+      result.current.filteredTodos.every(
+        todo => !todo.completed && todo.categoryId === 'personal'
+      )
+    ).toBe(true)
     expect(result.current.activeFilterCount).toBe(2)
   })
 
@@ -166,21 +177,21 @@ describe('useFilters', () => {
   // 目的: reupdateFilters関数が全てのフィルターを初期状態に戻すことを保証
   it('フィルターをリセットできる', () => {
     const { result } = renderHook(() => useFilters(mockTodos))
-    
+
     act(() => {
-      result.current.updateFilters({ 
+      result.current.updateFilters({
         completionStatus: 'completed',
         categoryIds: ['work'],
-        searchText: 'test'
+        searchText: 'test',
       })
     })
-    
+
     expect(result.current.activeFilterCount).toBe(3)
-    
+
     act(() => {
       result.current.resetFilters()
     })
-    
+
     expect(result.current.filters.completionStatus).toBe('all')
     expect(result.current.filters.categoryIds).toEqual([])
     expect(result.current.filters.searchText).toBe('')
@@ -192,11 +203,11 @@ describe('useFilters', () => {
   // 目的: フィルター設定がlocalStorageに正しく保存されることを保証
   it('フィルター状態がlocalStorageに保存される', () => {
     const { result } = renderHook(() => useFilters(mockTodos))
-    
+
     act(() => {
       result.current.updateFilters({ completionStatus: 'completed' })
     })
-    
+
     const savedFilters = JSON.parse(localStorage.getItem('todoFilters') || '{}')
     expect(savedFilters.completionStatus).toBe('completed')
   })
@@ -209,17 +220,19 @@ describe('useFilters', () => {
       categoryIds: ['work'],
       tags: [],
       tagCondition: 'any',
-      searchText: ''
+      searchText: '',
     }
     localStorage.setItem('todoFilters', JSON.stringify(savedFilters))
-    
+
     const { result } = renderHook(() => useFilters(mockTodos))
-    
+
     expect(result.current.filters.completionStatus).toBe('completed')
     expect(result.current.filters.categoryIds).toEqual(['work'])
     expect(result.current.filteredTodos).toHaveLength(2)
-    expect(result.current.filteredTodos.every(todo => 
-      todo.completed && todo.categoryId === 'work'
-    )).toBe(true)
+    expect(
+      result.current.filteredTodos.every(
+        todo => todo.completed && todo.categoryId === 'work'
+      )
+    ).toBe(true)
   })
 })

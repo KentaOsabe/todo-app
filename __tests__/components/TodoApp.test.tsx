@@ -11,14 +11,18 @@ describe('TodoApp', () => {
   // 目的: UIの基本構造が正しくレンダリングされることを保証
   it('renders todo app title', () => {
     render(<TodoApp />)
-    expect(screen.getByRole('heading', { name: /todo app/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: /todo app/i })
+    ).toBeInTheDocument()
   })
 
   // 概要: 新しいTodoを入力するためのフィールドが表示されることを確認
   // 目的: ユーザーがTodoを入力できるUIが提供されていることを保証
   it('renders input field for new todo', () => {
     render(<TodoApp />)
-    expect(screen.getByPlaceholderText('新しいタスクを入力')).toBeInTheDocument()
+    expect(
+      screen.getByPlaceholderText('新しいタスクを入力')
+    ).toBeInTheDocument()
   })
 
   // 概要: Todoを追加するためのボタンが表示されることを確認
@@ -45,7 +49,9 @@ describe('TodoApp', () => {
   // 目的: UXの向上とユーザーが連続してTodoを追加できることを保証
   it('clears input after adding todo', () => {
     render(<TodoApp />)
-    const input = screen.getByPlaceholderText('新しいタスクを入力') as HTMLInputElement
+    const input = screen.getByPlaceholderText(
+      '新しいタスクを入力'
+    ) as HTMLInputElement
     const addButton = screen.getByRole('button', { name: '追加' })
 
     fireEvent.change(input, { target: { value: 'Learn React' } })
@@ -66,11 +72,12 @@ describe('TodoApp', () => {
 
     // Todo項目のcheckboxを特定（data-testidなどで区別）
     const todoCheckboxes = screen.getAllByRole('checkbox')
-    const todoCheckbox = todoCheckboxes.find(checkbox => 
-      checkbox.getAttribute('data-indeterminate') === 'false' &&
-      checkbox.tabIndex === -1
+    const todoCheckbox = todoCheckboxes.find(
+      checkbox =>
+        checkbox.getAttribute('data-indeterminate') === 'false' &&
+        checkbox.tabIndex === -1
     )
-    
+
     expect(todoCheckbox).not.toBeChecked()
 
     fireEvent.click(todoCheckbox!)
@@ -105,9 +112,10 @@ describe('TodoApp', () => {
 
     // FilterBarのSwitchではなく、Todo項目のcheckboxがないことを確認
     const todoCheckboxes = screen.getAllByRole('checkbox')
-    const todoCheckbox = todoCheckboxes.find(checkbox => 
-      checkbox.getAttribute('data-indeterminate') === 'false' &&
-      checkbox.tabIndex === -1
+    const todoCheckbox = todoCheckboxes.find(
+      checkbox =>
+        checkbox.getAttribute('data-indeterminate') === 'false' &&
+        checkbox.tabIndex === -1
     )
     expect(todoCheckbox).toBeUndefined()
   })
@@ -116,20 +124,20 @@ describe('TodoApp', () => {
   // 目的: フィルター機能のUIが正しく統合されていることを保証
   it('renders filter bar', () => {
     render(<TodoApp />)
-    
+
     // 完了状態フィルター
     expect(screen.getByRole('group', { name: /完了状態/i })).toBeInTheDocument()
-    
+
     // カテゴリフィルター（FilterBar内の）
     const categoryFilterElements = screen.getAllByLabelText('カテゴリ')
     expect(categoryFilterElements.length).toBeGreaterThan(0)
-    
+
     // タグフィルター
     expect(screen.getByRole('combobox', { name: /タグ/i })).toBeInTheDocument()
-    
+
     // 検索フィルター
     expect(screen.getByLabelText(/検索/i)).toBeInTheDocument()
-    
+
     // リセットボタン
     expect(screen.getByText('リセット')).toBeInTheDocument()
   })
@@ -149,9 +157,10 @@ describe('TodoApp', () => {
 
     // 1つ目を完了にする
     const todoCheckboxes = screen.getAllByRole('checkbox')
-    const todoCheckbox = todoCheckboxes.find(checkbox => 
-      checkbox.getAttribute('data-indeterminate') === 'false' &&
-      checkbox.tabIndex === -1
+    const todoCheckbox = todoCheckboxes.find(
+      checkbox =>
+        checkbox.getAttribute('data-indeterminate') === 'false' &&
+        checkbox.tabIndex === -1
     )
     fireEvent.click(todoCheckbox!)
 
@@ -214,6 +223,92 @@ describe('TodoApp', () => {
     await waitFor(() => {
       expect(screen.getByText('Test Task')).toBeInTheDocument()
       expect(searchInput).toHaveValue('')
+    })
+  })
+
+  // 概要: Todoの編集機能が正常に動作することを確認
+  // 目的: ユーザーが既存のTodoを編集できることを保証
+  it('allows editing todo text', async () => {
+    render(<TodoApp />)
+    const input = screen.getByPlaceholderText('新しいタスクを入力')
+    const addButton = screen.getByRole('button', { name: '追加' })
+
+    // Todoを追加
+    fireEvent.change(input, { target: { value: 'Original Task' } })
+    fireEvent.click(addButton)
+
+    // 編集ボタンをクリック
+    const editButton = screen.getByRole('button', { name: /edit/i })
+    fireEvent.click(editButton)
+
+    // テキストを変更
+    const editInput = screen.getByDisplayValue('Original Task')
+    fireEvent.change(editInput, { target: { value: 'Updated Task' } })
+
+    // 保存ボタンをクリック
+    const saveButton = screen.getByRole('button', { name: /保存|save/i })
+    fireEvent.click(saveButton)
+
+    // 更新されたテキストが表示されることを確認
+    await waitFor(() => {
+      expect(screen.getByText('Updated Task')).toBeInTheDocument()
+      expect(screen.queryByText('Original Task')).not.toBeInTheDocument()
+    })
+  })
+
+  // 概要: Todo編集のキャンセル機能が正常に動作することを確認
+  // 目的: ユーザーが編集を取り消せることを保証
+  it('allows canceling todo edit', async () => {
+    render(<TodoApp />)
+    const input = screen.getByPlaceholderText('新しいタスクを入力')
+    const addButton = screen.getByRole('button', { name: '追加' })
+
+    // Todoを追加
+    fireEvent.change(input, { target: { value: 'Original Task' } })
+    fireEvent.click(addButton)
+
+    // 編集ボタンをクリック
+    const editButton = screen.getByRole('button', { name: /edit/i })
+    fireEvent.click(editButton)
+
+    // テキストを変更
+    const editInput = screen.getByDisplayValue('Original Task')
+    fireEvent.change(editInput, { target: { value: 'Updated Task' } })
+
+    // キャンセルボタンをクリック
+    const cancelButton = screen.getByRole('button', {
+      name: /キャンセル|cancel/i,
+    })
+    fireEvent.click(cancelButton)
+
+    // 元のテキストが表示されることを確認
+    await waitFor(() => {
+      expect(screen.getByText('Original Task')).toBeInTheDocument()
+      expect(screen.queryByText('Updated Task')).not.toBeInTheDocument()
+    })
+  })
+
+  // 概要: ダブルクリックでTodo編集モードに入ることを確認
+  // 目的: ユーザビリティを向上させる直感的な編集操作が機能することを保証
+  it('allows editing todo by double click', async () => {
+    render(<TodoApp />)
+    const input = screen.getByPlaceholderText('新しいタスクを入力')
+    const addButton = screen.getByRole('button', { name: '追加' })
+
+    // Todoを追加
+    fireEvent.change(input, { target: { value: 'Double Click Task' } })
+    fireEvent.click(addButton)
+
+    // Todoテキストをダブルクリック
+    const todoText = screen.getByText('Double Click Task')
+    fireEvent.doubleClick(todoText)
+
+    // 編集フィールドが表示されることを確認
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Double Click Task')).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: /保存|save/i })
+      ).toBeInTheDocument()
     })
   })
 })

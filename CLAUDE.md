@@ -18,6 +18,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 3. **Refactor**: コードを改善し、テストが通ることを確認
 4. **Repeat**: 機能が完成するまで繰り返す
 
+#### 開発完了基準
+機能実装完了の判定には以下の5段階すべてをクリアすること：
+1. **開発** - 機能実装
+2. **単体テスト** - Vitestでの Unit Test 合格
+3. **E2Eテスト** - PlaywrightでのE2E Test合格
+4. **Lintチェック** - ESLintでコード品質確認（エラーゼロ）
+5. **Formatチェック** - Prettierでコードフォーマット確認（適正フォーマット）
+
 #### TDD適用範囲
 - 新しいReactコンポーネントの作成
 - カスタムフックの実装
@@ -53,6 +61,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `docker compose --profile e2e run --rm e2e` - Run Playwright E2E tests (requires app running)
 - `docker compose run --rm app npm run test:e2e:ui` - Run E2E tests with UI mode
 
+### Docker Code Quality
+
+- `docker compose run --rm app npm run lint` - Run ESLint to check code quality
+- `docker compose run --rm app npm run lint:fix` - Run ESLint with auto-fix
+- `docker compose run --rm app npm run format` - Format code with Prettier
+- `docker compose run --rm app npm run format:check` - Check code formatting
+
 ### Local Development（非推奨）
 
 直接ローカル環境で実行する場合（依存関係の不整合リスクあり）：
@@ -60,6 +75,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run dev` - Start Vite development server on localhost:5173
 - `npm run build` - Build for production (TypeScript compilation + Vite build)
 - `npm run lint` - Run ESLint on the codebase
+- `npm run lint:fix` - Run ESLint with auto-fix
+- `npm run format` - Format code with Prettier
+- `npm run format:check` - Check code formatting
 - `npm run preview` - Preview production build locally
 - `npm run test` - Run Vitest unit tests in watch mode
 - `npm run test:run` - Run Vitest unit tests once

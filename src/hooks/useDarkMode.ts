@@ -11,7 +11,7 @@ export function useDarkMode(): UseDarkModeReturn {
   // システムのダークモード設定を検出
   const getSystemPreference = (): boolean => {
     if (typeof window === 'undefined') return false
-    
+
     try {
       return window.matchMedia('(prefers-color-scheme: dark)').matches
     } catch (error) {
@@ -21,10 +21,10 @@ export function useDarkMode(): UseDarkModeReturn {
   }
 
   const systemPreference = getSystemPreference()
-  
+
   // localStorageから設定を取得、なければシステム設定を使用
   const [storedDarkMode, setStoredDarkMode] = useLocalStorage<boolean | null>(
-    'darkMode', 
+    'darkMode',
     null
   )
 
@@ -39,7 +39,7 @@ export function useDarkMode(): UseDarkModeReturn {
 
     try {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-      
+
       const handleChange = (e: MediaQueryListEvent) => {
         // ユーザーが明示的に設定していない場合のみシステム設定に従う
         if (storedDarkMode === null) {

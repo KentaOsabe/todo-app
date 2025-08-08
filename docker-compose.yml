@@ -4,8 +4,8 @@ services:
   app:
     build: .
     ports:
-      - "5173:5173"
-      - "9229:9229"
+      - '5173:5173'
+      - '9229:9229'
     volumes:
       - .:/app
       - /app/node_modules

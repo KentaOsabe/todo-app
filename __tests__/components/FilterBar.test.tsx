@@ -7,7 +7,7 @@ import type { Category } from '../../src/types/category'
 const mockCategories: Category[] = [
   { id: 'work', name: '仕事', color: '#1976d2' },
   { id: 'personal', name: 'プライベート', color: '#ff5722' },
-  { id: 'other', name: 'その他', color: '#9e9e9e' }
+  { id: 'other', name: 'その他', color: '#9e9e9e' },
 ]
 
 const mockAvailableTags = ['urgent', 'shopping', 'learning', 'meeting']
@@ -17,7 +17,7 @@ const defaultFilters: FilterState = {
   categoryIds: [],
   tags: [],
   tagCondition: 'any',
-  searchText: ''
+  searchText: '',
 }
 
 describe('FilterBar', () => {
@@ -40,18 +40,20 @@ describe('FilterBar', () => {
 
     // 完了状態フィルター
     expect(screen.getByRole('group', { name: /完了状態/i })).toBeInTheDocument()
-    
+
     // カテゴリフィルター
     expect(screen.getByLabelText(/カテゴリ/i)).toBeInTheDocument()
-    
+
     // タグフィルター
     expect(screen.getByRole('combobox', { name: /タグ/i })).toBeInTheDocument()
-    
+
     // 検索フィルター
     expect(screen.getByLabelText(/検索/i)).toBeInTheDocument()
-    
+
     // リセットボタン
-    expect(screen.getByRole('button', { name: /リセット/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /リセット/i })
+    ).toBeInTheDocument()
   })
 
   // 概要: 完了状態フィルターの変更時にコールバックが呼ばれることを確認
@@ -75,7 +77,7 @@ describe('FilterBar', () => {
     fireEvent.click(completedButton)
 
     expect(mockOnFiltersChange).toHaveBeenCalledWith({
-      completionStatus: 'completed'
+      completionStatus: 'completed',
     })
   })
 
@@ -105,7 +107,7 @@ describe('FilterBar', () => {
     })
 
     expect(mockOnFiltersChange).toHaveBeenCalledWith({
-      categoryIds: ['work']
+      categoryIds: ['work'],
     })
   })
 
@@ -127,7 +129,7 @@ describe('FilterBar', () => {
     )
 
     const tagInput = screen.getByRole('combobox', { name: /タグ/i })
-    
+
     // Autocompleteにフォーカスして入力を開始
     fireEvent.focus(tagInput)
     fireEvent.change(tagInput, { target: { value: 'ur' } })
@@ -138,7 +140,7 @@ describe('FilterBar', () => {
     })
 
     expect(mockOnFiltersChange).toHaveBeenCalledWith({
-      tags: ['urgent']
+      tags: ['urgent'],
     })
   })
 
@@ -163,7 +165,7 @@ describe('FilterBar', () => {
     fireEvent.change(searchInput, { target: { value: 'test search' } })
 
     expect(mockOnFiltersChange).toHaveBeenCalledWith({
-      searchText: 'test search'
+      searchText: 'test search',
     })
   })
 
@@ -188,7 +190,7 @@ describe('FilterBar', () => {
     fireEvent.click(tagConditionToggle)
 
     expect(mockOnFiltersChange).toHaveBeenCalledWith({
-      tagCondition: 'all'
+      tagCondition: 'all',
     })
   })
 
@@ -264,7 +266,7 @@ describe('FilterBar', () => {
       categoryIds: ['work'],
       tags: ['urgent'],
       tagCondition: 'all',
-      searchText: 'test'
+      searchText: 'test',
     }
 
     const mockOnFiltersChange = vi.fn()
@@ -353,7 +355,7 @@ describe('FilterBar', () => {
     expect(screen.getByLabelText(/カテゴリ/i)).toBeInTheDocument()
     expect(screen.getByRole('combobox', { name: /タグ/i })).toBeInTheDocument()
     expect(screen.getByLabelText(/検索/i)).toBeInTheDocument()
-    
+
     // 完了状態フィルターにgroup roleが設定されている
     expect(screen.getByRole('group', { name: /完了状態/i })).toBeInTheDocument()
   })

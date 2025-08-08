@@ -18,72 +18,82 @@ export const useTodoSorting = (
     return [...todos].sort((a, b) => a.order - b.order)
   }, [todos])
 
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event
 
-    if (!over || active.id === over.id) {
-      return
-    }
+      if (!over || active.id === over.id) {
+        return
+      }
 
-    const oldIndex = sortedTodos.findIndex(todo => todo.id === active.id)
-    const newIndex = sortedTodos.findIndex(todo => todo.id === over.id)
+      const oldIndex = sortedTodos.findIndex(todo => todo.id === active.id)
+      const newIndex = sortedTodos.findIndex(todo => todo.id === over.id)
 
-    if (oldIndex === -1 || newIndex === -1) {
-      return
-    }
+      if (oldIndex === -1 || newIndex === -1) {
+        return
+      }
 
-    const reordered = arrayMove(sortedTodos, oldIndex, newIndex)
-    const reorderedWithOrder = reordered.map((todo, index) => ({
-      ...todo,
-      order: index
-    }))
+      const reordered = arrayMove(sortedTodos, oldIndex, newIndex)
+      const reorderedWithOrder = reordered.map((todo, index) => ({
+        ...todo,
+        order: index,
+      }))
 
-    onReorder?.(reorderedWithOrder)
-  }, [sortedTodos, onReorder])
+      onReorder?.(reorderedWithOrder)
+    },
+    [sortedTodos, onReorder]
+  )
 
   const resetOrder = useCallback(() => {
-    const sorted = [...todos].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+    const sorted = [...todos].sort(
+      (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
+    )
     const reorderedWithOrder = sorted.map((todo, index) => ({
       ...todo,
-      order: index
+      order: index,
     }))
     onReorder?.(reorderedWithOrder)
   }, [todos, onReorder])
 
-  const sortBy = useCallback((criteria: 'created' | 'alphabetical' | 'category' | 'custom') => {
-    let sorted: Todo[]
-    
-    switch (criteria) {
-      case 'created':
-        sorted = [...todos].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-        break
-      case 'alphabetical':
-        sorted = [...todos].sort((a, b) => a.text.localeCompare(b.text))
-        break
-      case 'category':
-        sorted = [...todos].sort((a, b) => {
-          const categoryA = a.categoryId || ''
-          const categoryB = b.categoryId || ''
-          return categoryA.localeCompare(categoryB)
-        })
-        break
-      case 'custom':
-      default:
-        sorted = [...todos].sort((a, b) => a.order - b.order)
-        break
-    }
+  const sortBy = useCallback(
+    (criteria: 'created' | 'alphabetical' | 'category' | 'custom') => {
+      let sorted: Todo[]
 
-    const reorderedWithOrder = sorted.map((todo, index) => ({
-      ...todo,
-      order: index
-    }))
-    onReorder?.(reorderedWithOrder)
-  }, [todos, onReorder])
+      switch (criteria) {
+        case 'created':
+          sorted = [...todos].sort(
+            (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
+          )
+          break
+        case 'alphabetical':
+          sorted = [...todos].sort((a, b) => a.text.localeCompare(b.text))
+          break
+        case 'category':
+          sorted = [...todos].sort((a, b) => {
+            const categoryA = a.categoryId || ''
+            const categoryB = b.categoryId || ''
+            return categoryA.localeCompare(categoryB)
+          })
+          break
+        case 'custom':
+        default:
+          sorted = [...todos].sort((a, b) => a.order - b.order)
+          break
+      }
+
+      const reorderedWithOrder = sorted.map((todo, index) => ({
+        ...todo,
+        order: index,
+      }))
+      onReorder?.(reorderedWithOrder)
+    },
+    [todos, onReorder]
+  )
 
   return {
     sortedTodos,
     handleDragEnd,
     resetOrder,
-    sortBy
+    sortBy,
   }
 }

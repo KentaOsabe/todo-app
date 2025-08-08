@@ -10,11 +10,11 @@ import {
   IconButton,
   CssBaseline,
 } from '@mui/material'
-import { 
+import {
   DarkMode as DarkModeIcon,
   LightMode as LightModeIcon,
 } from '@mui/icons-material'
-import type { Todo } from '../types/todo'
+import type { Todo, EditTodoData } from '../types/todo'
 import { SortableTodoItem } from './SortableTodoItem'
 import { TodoForm } from './TodoForm'
 import { FilterBar } from './FilterBar'
@@ -28,23 +28,25 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 
 export const TodoApp = () => {
   const [storedTodos, setStoredTodos] = useLocalStorage<Todo[]>('todos', [])
-  
+
   // localStorageから読み込んだTodoを正規化（tagsフィールドとorderフィールドが欠けている可能性に対応）
-  const todos = useMemo(() => 
-    storedTodos.map((todo, index) => ({
-      ...todo,
-      tags: todo.tags || [],
-      order: todo.order !== undefined ? todo.order : index
-    }))
-  , [storedTodos])
-  
+  const todos = useMemo(
+    () =>
+      storedTodos.map((todo, index) => ({
+        ...todo,
+        tags: todo.tags || [],
+        order: todo.order !== undefined ? todo.order : index,
+      })),
+    [storedTodos]
+  )
+
   const setTodos = (value: Todo[] | ((prev: Todo[]) => Todo[])) => {
     if (typeof value === 'function') {
       setStoredTodos(prev => {
-        const normalized = prev.map((todo, index) => ({ 
-          ...todo, 
+        const normalized = prev.map((todo, index) => ({
+          ...todo,
           tags: todo.tags || [],
-          order: todo.order !== undefined ? todo.order : index
+          order: todo.order !== undefined ? todo.order : index,
         }))
         return value(normalized)
       })
@@ -54,7 +56,14 @@ export const TodoApp = () => {
   }
   const { isDarkMode, toggleDarkMode } = useDarkMode()
   const { categories } = useCategories()
-  const { filters, filteredTodos, updateFilters, resetFilters, availableTags, activeFilterCount } = useFilters(todos)
+  const {
+    filters,
+    filteredTodos,
+    updateFilters,
+    resetFilters,
+    availableTags,
+    activeFilterCount,
+  } = useFilters(todos)
 
   // ドラッグ&ドロップによる並び替え機能
   const { sortedTodos, handleDragEnd } = useTodoSorting(filteredTodos, setTodos)
@@ -76,8 +85,13 @@ export const TodoApp = () => {
     [isDarkMode]
   )
 
-  const handleAddTodo = (data: { text: string; categoryId?: string; tags: string[] }) => {
-    const maxOrder = todos.length > 0 ? Math.max(...todos.map(t => t.order || 0)) : -1
+  const handleAddTodo = (data: {
+    text: string
+    categoryId?: string
+    tags: string[]
+  }) => {
+    const maxOrder =
+      todos.length > 0 ? Math.max(...todos.map(t => t.order || 0)) : -1
     const newTodo: Todo = {
       id: Date.now().toString(),
       text: data.text,
@@ -103,24 +117,48 @@ export const TodoApp = () => {
     setTodos(prev => prev.filter(todo => todo.id !== id))
   }
 
+  const handleEditTodo = (id: string, data: EditTodoData) => {
+    setTodos(prev =>
+      prev.map(todo =>
+        todo.id === id
+          ? {
+              ...todo,
+              text: data.text,
+              categoryId: data.categoryId,
+              tags: data.tags,
+            }
+          : todo
+      )
+    )
+  }
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Container maxWidth="md" sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2,
+          }}
+        >
           <Typography variant="h3" component="h1" color="primary">
             Todo App
           </Typography>
           <IconButton
             onClick={toggleDarkMode}
             color="primary"
-            aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label={
+              isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'
+            }
             size="large"
           >
             {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
           </IconButton>
         </Box>
-        
+
         <TodoForm onSubmit={handleAddTodo} categories={categories} />
 
         <FilterBar
@@ -134,11 +172,11 @@ export const TodoApp = () => {
 
         {sortedTodos.length > 0 && (
           <Paper elevation={2}>
-            <DndContext 
+            <DndContext
               collisionDetection={closestCenter}
               onDragEnd={handleDragEnd}
             >
-              <SortableContext 
+              <SortableContext
                 items={sortedTodos.map(todo => todo.id)}
                 strategy={verticalListSortingStrategy}
               >
@@ -149,6 +187,7 @@ export const TodoApp = () => {
                       todo={todo}
                       onToggle={handleToggleTodo}
                       onDelete={handleDeleteTodo}
+                      onEdit={handleEditTodo}
                       categories={categories}
                     />
                   ))}
@@ -159,13 +198,23 @@ export const TodoApp = () => {
         )}
 
         {todos.length === 0 && (
-          <Typography variant="body1" align="center" color="text.secondary" sx={{ mt: 4 }}>
+          <Typography
+            variant="body1"
+            align="center"
+            color="text.secondary"
+            sx={{ mt: 4 }}
+          >
             No todos yet. Add one above to get started!
           </Typography>
         )}
 
         {todos.length > 0 && sortedTodos.length === 0 && (
-          <Typography variant="body1" align="center" color="text.secondary" sx={{ mt: 4 }}>
+          <Typography
+            variant="body1"
+            align="center"
+            color="text.secondary"
+            sx={{ mt: 4 }}
+          >
             No todos match the current filters.
           </Typography>
         )}

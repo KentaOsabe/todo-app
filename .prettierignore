@@ -1,0 +1,15 @@
+dist/
+node_modules/
+.git/
+coverage/
+*.min.js
+*.min.css
+.next/
+.nuxt/
+.vscode/
+.claude/
+.serena/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+*.md

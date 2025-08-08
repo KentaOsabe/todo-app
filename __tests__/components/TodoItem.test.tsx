@@ -10,12 +10,13 @@ const mockTodo: Todo = {
   completed: false,
   createdAt: new Date('2023-01-01'),
   categoryId: undefined,
-  tags: []
+  tags: [],
+  order: 0,
 }
 
 const mockCategories: Category[] = [
   { id: 'work', name: '仕事', color: '#1976d2' },
-  { id: 'private', name: 'プライベート', color: '#ff5722' }
+  { id: 'private', name: 'プライベート', color: '#ff5722' },
 ]
 
 const mockTodoWithCategory: Todo = {
@@ -24,7 +25,8 @@ const mockTodoWithCategory: Todo = {
   completed: false,
   createdAt: new Date('2023-01-01'),
   categoryId: 'work',
-  tags: []
+  tags: [],
+  order: 1,
 }
 
 const mockTodoWithTags: Todo = {
@@ -33,7 +35,8 @@ const mockTodoWithTags: Todo = {
   completed: false,
   createdAt: new Date('2023-01-01'),
   categoryId: undefined,
-  tags: ['重要', '急ぎ']
+  tags: ['重要', '急ぎ'],
+  order: 2,
 }
 
 const mockTodoWithCategoryAndTags: Todo = {
@@ -42,7 +45,8 @@ const mockTodoWithCategoryAndTags: Todo = {
   completed: false,
   createdAt: new Date('2023-01-01'),
   categoryId: 'private',
-  tags: ['買い物', '今日中']
+  tags: ['買い物', '今日中'],
+  order: 3,
 }
 
 describe('TodoItem', () => {
@@ -53,10 +57,10 @@ describe('TodoItem', () => {
     const mockOnDelete = vi.fn()
 
     render(
-      <TodoItem 
-        todo={mockTodo} 
-        onToggle={mockOnToggle} 
-        onDelete={mockOnDelete} 
+      <TodoItem
+        todo={mockTodo}
+        onToggle={mockOnToggle}
+        onDelete={mockOnDelete}
       />
     )
 
@@ -70,10 +74,10 @@ describe('TodoItem', () => {
     const mockOnDelete = vi.fn()
 
     render(
-      <TodoItem 
-        todo={mockTodo} 
-        onToggle={mockOnToggle} 
-        onDelete={mockOnDelete} 
+      <TodoItem
+        todo={mockTodo}
+        onToggle={mockOnToggle}
+        onDelete={mockOnDelete}
       />
     )
 
@@ -89,10 +93,10 @@ describe('TodoItem', () => {
     const mockOnDelete = vi.fn()
 
     render(
-      <TodoItem 
-        todo={completedTodo} 
-        onToggle={mockOnToggle} 
-        onDelete={mockOnDelete} 
+      <TodoItem
+        todo={completedTodo}
+        onToggle={mockOnToggle}
+        onDelete={mockOnDelete}
       />
     )
 
@@ -107,10 +111,10 @@ describe('TodoItem', () => {
     const mockOnDelete = vi.fn()
 
     render(
-      <TodoItem 
-        todo={mockTodo} 
-        onToggle={mockOnToggle} 
-        onDelete={mockOnDelete} 
+      <TodoItem
+        todo={mockTodo}
+        onToggle={mockOnToggle}
+        onDelete={mockOnDelete}
       />
     )
 
@@ -127,10 +131,10 @@ describe('TodoItem', () => {
     const mockOnDelete = vi.fn()
 
     render(
-      <TodoItem 
-        todo={mockTodo} 
-        onToggle={mockOnToggle} 
-        onDelete={mockOnDelete} 
+      <TodoItem
+        todo={mockTodo}
+        onToggle={mockOnToggle}
+        onDelete={mockOnDelete}
       />
     )
 
@@ -148,10 +152,10 @@ describe('TodoItem', () => {
     const mockOnDelete = vi.fn()
 
     render(
-      <TodoItem 
-        todo={completedTodo} 
-        onToggle={mockOnToggle} 
-        onDelete={mockOnDelete} 
+      <TodoItem
+        todo={completedTodo}
+        onToggle={mockOnToggle}
+        onDelete={mockOnDelete}
       />
     )
 
@@ -166,9 +170,9 @@ describe('TodoItem', () => {
     const mockOnDelete = vi.fn()
 
     render(
-      <TodoItem 
-        todo={mockTodoWithCategory} 
-        onToggle={mockOnToggle} 
+      <TodoItem
+        todo={mockTodoWithCategory}
+        onToggle={mockOnToggle}
         onDelete={mockOnDelete}
         categories={mockCategories}
       />
@@ -185,9 +189,9 @@ describe('TodoItem', () => {
     const mockOnDelete = vi.fn()
 
     render(
-      <TodoItem 
-        todo={mockTodo} 
-        onToggle={mockOnToggle} 
+      <TodoItem
+        todo={mockTodo}
+        onToggle={mockOnToggle}
         onDelete={mockOnDelete}
         categories={mockCategories}
       />
@@ -204,9 +208,9 @@ describe('TodoItem', () => {
     const mockOnDelete = vi.fn()
 
     render(
-      <TodoItem 
-        todo={mockTodoWithTags} 
-        onToggle={mockOnToggle} 
+      <TodoItem
+        todo={mockTodoWithTags}
+        onToggle={mockOnToggle}
         onDelete={mockOnDelete}
         categories={mockCategories}
       />
@@ -226,9 +230,9 @@ describe('TodoItem', () => {
     const mockOnDelete = vi.fn()
 
     render(
-      <TodoItem 
-        todo={mockTodo} 
-        onToggle={mockOnToggle} 
+      <TodoItem
+        todo={mockTodo}
+        onToggle={mockOnToggle}
         onDelete={mockOnDelete}
         categories={mockCategories}
       />
@@ -245,9 +249,9 @@ describe('TodoItem', () => {
     const mockOnDelete = vi.fn()
 
     render(
-      <TodoItem 
-        todo={mockTodoWithCategoryAndTags} 
-        onToggle={mockOnToggle} 
+      <TodoItem
+        todo={mockTodoWithCategoryAndTags}
+        onToggle={mockOnToggle}
         onDelete={mockOnDelete}
         categories={mockCategories}
       />
@@ -271,9 +275,9 @@ describe('TodoItem', () => {
 
     expect(() => {
       render(
-        <TodoItem 
-          todo={todoWithInvalidCategory} 
-          onToggle={mockOnToggle} 
+        <TodoItem
+          todo={todoWithInvalidCategory}
+          onToggle={mockOnToggle}
           onDelete={mockOnDelete}
           categories={mockCategories}
         />
@@ -283,5 +287,44 @@ describe('TodoItem', () => {
     // 無効なカテゴリIDの場合はカテゴリChipが表示されない
     const invalidCategoryChip = screen.queryByText('invalid-id')
     expect(invalidCategoryChip).not.toBeInTheDocument()
+  })
+
+  // 概要: 編集機能なしでも正常に動作することをテスト
+  // 目的: onEditプロパティがない場合でも後方互換性を保つことを保証
+  it('renders without edit functionality when onEdit is not provided', () => {
+    const mockOnToggle = vi.fn()
+    const mockOnDelete = vi.fn()
+
+    render(
+      <TodoItem
+        todo={mockTodo}
+        onToggle={mockOnToggle}
+        onDelete={mockOnDelete}
+      />
+    )
+
+    expect(screen.getByText('Test Todo')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /編集|edit/i })
+    ).not.toBeInTheDocument()
+  })
+
+  // 概要: onEditが提供された場合に編集ボタンが表示されることをテスト
+  // 目的: 編集機能が有効な場合に適切なUIが表示されることを保証
+  it('renders edit button when onEdit is provided', () => {
+    const mockOnToggle = vi.fn()
+    const mockOnDelete = vi.fn()
+    const mockOnEdit = vi.fn()
+
+    render(
+      <TodoItem
+        todo={mockTodo}
+        onToggle={mockOnToggle}
+        onDelete={mockOnDelete}
+        onEdit={mockOnEdit}
+      />
+    )
+
+    expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
   })
 })

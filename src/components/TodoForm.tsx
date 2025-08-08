@@ -40,7 +40,7 @@ export const TodoForm = ({ onSubmit, categories }: TodoFormProps) => {
     onSubmit({
       text: text.trim(),
       categoryId: categoryId || undefined,
-      tags
+      tags,
     })
 
     // フォームをクリア
@@ -68,7 +68,7 @@ export const TodoForm = ({ onSubmit, categories }: TodoFormProps) => {
           variant="outlined"
           placeholder="新しいタスクを入力"
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={e => setText(e.target.value)}
           onKeyPress={handleKeyPress}
         />
 
@@ -86,7 +86,7 @@ export const TodoForm = ({ onSubmit, categories }: TodoFormProps) => {
               <MenuItem value="">
                 <em>なし</em>
               </MenuItem>
-              {categories.map((category) => (
+              {categories.map(category => (
                 <MenuItem key={category.id} value={category.id}>
                   {category.name}
                 </MenuItem>
@@ -101,7 +101,7 @@ export const TodoForm = ({ onSubmit, categories }: TodoFormProps) => {
             label="タグ"
             placeholder="タグをカンマ区切りで入力"
             value={tagsInput}
-            onChange={(e) => setTagsInput(e.target.value)}
+            onChange={e => setTagsInput(e.target.value)}
             helperText="例: 重要, 急ぎ, 今日中"
           />
 

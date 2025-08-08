@@ -6,7 +6,7 @@ import type { Category } from '../../src/types/category'
 const mockCategories: Category[] = [
   { id: 'work', name: '仕事', color: '#1976d2' },
   { id: 'private', name: 'プライベート', color: '#ff5722' },
-  { id: 'other', name: 'その他', color: '#9e9e9e' }
+  { id: 'other', name: 'その他', color: '#9e9e9e' },
 ]
 
 describe('TodoForm', () => {
@@ -15,12 +15,7 @@ describe('TodoForm', () => {
   it('renders todo text input field', () => {
     const mockOnSubmit = vi.fn()
 
-    render(
-      <TodoForm 
-        onSubmit={mockOnSubmit} 
-        categories={mockCategories}
-      />
-    )
+    render(<TodoForm onSubmit={mockOnSubmit} categories={mockCategories} />)
 
     const textInput = screen.getByPlaceholderText('新しいタスクを入力')
     expect(textInput).toBeInTheDocument()
@@ -31,12 +26,7 @@ describe('TodoForm', () => {
   it('renders category selection field', () => {
     const mockOnSubmit = vi.fn()
 
-    render(
-      <TodoForm 
-        onSubmit={mockOnSubmit} 
-        categories={mockCategories}
-      />
-    )
+    render(<TodoForm onSubmit={mockOnSubmit} categories={mockCategories} />)
 
     const categorySelect = screen.getByLabelText('カテゴリ')
     expect(categorySelect).toBeInTheDocument()
@@ -47,12 +37,7 @@ describe('TodoForm', () => {
   it('renders tag input field', () => {
     const mockOnSubmit = vi.fn()
 
-    render(
-      <TodoForm 
-        onSubmit={mockOnSubmit} 
-        categories={mockCategories}
-      />
-    )
+    render(<TodoForm onSubmit={mockOnSubmit} categories={mockCategories} />)
 
     const tagInput = screen.getByLabelText('タグ')
     expect(tagInput).toBeInTheDocument()
@@ -63,12 +48,7 @@ describe('TodoForm', () => {
   it('renders add button', () => {
     const mockOnSubmit = vi.fn()
 
-    render(
-      <TodoForm 
-        onSubmit={mockOnSubmit} 
-        categories={mockCategories}
-      />
-    )
+    render(<TodoForm onSubmit={mockOnSubmit} categories={mockCategories} />)
 
     const addButton = screen.getByRole('button', { name: /追加/i })
     expect(addButton).toBeInTheDocument()
@@ -79,12 +59,7 @@ describe('TodoForm', () => {
   it('submits form with text only', async () => {
     const mockOnSubmit = vi.fn()
 
-    render(
-      <TodoForm 
-        onSubmit={mockOnSubmit} 
-        categories={mockCategories}
-      />
-    )
+    render(<TodoForm onSubmit={mockOnSubmit} categories={mockCategories} />)
 
     const textInput = screen.getByPlaceholderText('新しいタスクを入力')
     const addButton = screen.getByRole('button', { name: /追加/i })
@@ -95,7 +70,7 @@ describe('TodoForm', () => {
     expect(mockOnSubmit).toHaveBeenCalledWith({
       text: 'テストタスク',
       categoryId: undefined,
-      tags: []
+      tags: [],
     })
   })
 
@@ -104,12 +79,7 @@ describe('TodoForm', () => {
   it('submits form with category selected', async () => {
     const mockOnSubmit = vi.fn()
 
-    render(
-      <TodoForm 
-        onSubmit={mockOnSubmit} 
-        categories={mockCategories}
-      />
-    )
+    render(<TodoForm onSubmit={mockOnSubmit} categories={mockCategories} />)
 
     const textInput = screen.getByPlaceholderText('新しいタスクを入力')
     const categorySelect = screen.getByLabelText('カテゴリ')
@@ -117,7 +87,7 @@ describe('TodoForm', () => {
 
     fireEvent.change(textInput, { target: { value: 'カテゴリ付きタスク' } })
     fireEvent.mouseDown(categorySelect)
-    
+
     await waitFor(() => {
       const workOption = screen.getByText('仕事')
       fireEvent.click(workOption)
@@ -128,7 +98,7 @@ describe('TodoForm', () => {
     expect(mockOnSubmit).toHaveBeenCalledWith({
       text: 'カテゴリ付きタスク',
       categoryId: 'work',
-      tags: []
+      tags: [],
     })
   })
 
@@ -137,12 +107,7 @@ describe('TodoForm', () => {
   it('submits form with tags', async () => {
     const mockOnSubmit = vi.fn()
 
-    render(
-      <TodoForm 
-        onSubmit={mockOnSubmit} 
-        categories={mockCategories}
-      />
-    )
+    render(<TodoForm onSubmit={mockOnSubmit} categories={mockCategories} />)
 
     const textInput = screen.getByPlaceholderText('新しいタスクを入力')
     const tagInput = screen.getByLabelText('タグ')
@@ -155,7 +120,7 @@ describe('TodoForm', () => {
     expect(mockOnSubmit).toHaveBeenCalledWith({
       text: 'タグ付きタスク',
       categoryId: undefined,
-      tags: ['重要', '急ぎ']
+      tags: ['重要', '急ぎ'],
     })
   })
 
@@ -164,12 +129,7 @@ describe('TodoForm', () => {
   it('submits form with both category and tags', async () => {
     const mockOnSubmit = vi.fn()
 
-    render(
-      <TodoForm 
-        onSubmit={mockOnSubmit} 
-        categories={mockCategories}
-      />
-    )
+    render(<TodoForm onSubmit={mockOnSubmit} categories={mockCategories} />)
 
     const textInput = screen.getByPlaceholderText('新しいタスクを入力')
     const categorySelect = screen.getByLabelText('カテゴリ')
@@ -177,7 +137,7 @@ describe('TodoForm', () => {
     const addButton = screen.getByRole('button', { name: /追加/i })
 
     fireEvent.change(textInput, { target: { value: '完全なタスク' } })
-    
+
     fireEvent.mouseDown(categorySelect)
     await waitFor(() => {
       const privateOption = screen.getByText('プライベート')
@@ -190,7 +150,7 @@ describe('TodoForm', () => {
     expect(mockOnSubmit).toHaveBeenCalledWith({
       text: '完全なタスク',
       categoryId: 'private',
-      tags: ['買い物', '今日中']
+      tags: ['買い物', '今日中'],
     })
   })
 
@@ -199,12 +159,7 @@ describe('TodoForm', () => {
   it('does not submit form with empty text', () => {
     const mockOnSubmit = vi.fn()
 
-    render(
-      <TodoForm 
-        onSubmit={mockOnSubmit} 
-        categories={mockCategories}
-      />
-    )
+    render(<TodoForm onSubmit={mockOnSubmit} categories={mockCategories} />)
 
     const addButton = screen.getByRole('button', { name: /追加/i })
     fireEvent.click(addButton)
@@ -217,14 +172,11 @@ describe('TodoForm', () => {
   it('clears form after successful submission', async () => {
     const mockOnSubmit = vi.fn()
 
-    render(
-      <TodoForm 
-        onSubmit={mockOnSubmit} 
-        categories={mockCategories}
-      />
-    )
+    render(<TodoForm onSubmit={mockOnSubmit} categories={mockCategories} />)
 
-    const textInput = screen.getByPlaceholderText('新しいタスクを入力') as HTMLInputElement
+    const textInput = screen.getByPlaceholderText(
+      '新しいタスクを入力'
+    ) as HTMLInputElement
     const tagInput = screen.getByLabelText('タグ') as HTMLInputElement
     const addButton = screen.getByRole('button', { name: /追加/i })
 
@@ -243,12 +195,7 @@ describe('TodoForm', () => {
   it('works with empty categories array', () => {
     const mockOnSubmit = vi.fn()
 
-    render(
-      <TodoForm 
-        onSubmit={mockOnSubmit} 
-        categories={[]}
-      />
-    )
+    render(<TodoForm onSubmit={mockOnSubmit} categories={[]} />)
 
     const textInput = screen.getByPlaceholderText('新しいタスクを入力')
     expect(textInput).toBeInTheDocument()
@@ -262,12 +209,7 @@ describe('TodoForm', () => {
   it('submits form when Enter is pressed in text field', () => {
     const mockOnSubmit = vi.fn()
 
-    render(
-      <TodoForm 
-        onSubmit={mockOnSubmit} 
-        categories={mockCategories}
-      />
-    )
+    render(<TodoForm onSubmit={mockOnSubmit} categories={mockCategories} />)
 
     const textInput = screen.getByPlaceholderText('新しいタスクを入力')
 
@@ -277,7 +219,7 @@ describe('TodoForm', () => {
     expect(mockOnSubmit).toHaveBeenCalledWith({
       text: 'Enterテスト',
       categoryId: undefined,
-      tags: []
+      tags: [],
     })
   })
-});
+})

@@ -2,7 +2,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { DragIndicator } from '@mui/icons-material'
 import { Box, IconButton } from '@mui/material'
-import type { Todo } from '../types/todo'
+import type { Todo, EditTodoData } from '../types/todo'
 import type { Category } from '../types/category'
 import { TodoItem } from './TodoItem'
 
@@ -10,10 +10,17 @@ interface SortableTodoItemProps {
   todo: Todo
   onToggle: (id: string) => void
   onDelete: (id: string) => void
+  onEdit?: (id: string, data: EditTodoData) => void
   categories: Category[]
 }
 
-export const SortableTodoItem = ({ todo, onToggle, onDelete, categories }: SortableTodoItemProps) => {
+export const SortableTodoItem = ({
+  todo,
+  onToggle,
+  onDelete,
+  onEdit,
+  categories,
+}: SortableTodoItemProps) => {
   const {
     attributes,
     listeners,
@@ -63,6 +70,7 @@ export const SortableTodoItem = ({ todo, onToggle, onDelete, categories }: Sorta
           todo={todo}
           onToggle={onToggle}
           onDelete={onDelete}
+          onEdit={onEdit}
           categories={categories}
         />
       </Box>

@@ -28,9 +28,11 @@ describe('useLocalStorage', () => {
   // 目的: localStorageに値がない場合、初期値が使用されることを確認
   it('returns initial value when localStorage is empty', () => {
     localStorageMock.getItem.mockReturnValue(null)
-    
-    const { result } = renderHook(() => useLocalStorage('test-key', 'initial-value'))
-    
+
+    const { result } = renderHook(() =>
+      useLocalStorage('test-key', 'initial-value')
+    )
+
     expect(result.current[0]).toBe('initial-value')
     expect(localStorageMock.getItem).toHaveBeenCalledWith('test-key')
   })
@@ -39,9 +41,11 @@ describe('useLocalStorage', () => {
   // 目的: 保存された値が正しく復元されることを確認
   it('returns stored value from localStorage', () => {
     localStorageMock.getItem.mockReturnValue(JSON.stringify('stored-value'))
-    
-    const { result } = renderHook(() => useLocalStorage('test-key', 'initial-value'))
-    
+
+    const { result } = renderHook(() =>
+      useLocalStorage('test-key', 'initial-value')
+    )
+
     expect(result.current[0]).toBe('stored-value')
     expect(localStorageMock.getItem).toHaveBeenCalledWith('test-key')
   })
@@ -50,30 +54,38 @@ describe('useLocalStorage', () => {
   // 目的: setValue関数が正しく動作することを確認
   it('updates localStorage when value is set', () => {
     localStorageMock.getItem.mockReturnValue(null)
-    
-    const { result } = renderHook(() => useLocalStorage('test-key', 'initial-value'))
-    
+
+    const { result } = renderHook(() =>
+      useLocalStorage('test-key', 'initial-value')
+    )
+
     act(() => {
       result.current[1]('new-value')
     })
-    
+
     expect(result.current[0]).toBe('new-value')
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('test-key', JSON.stringify('new-value'))
+    expect(localStorageMock.setItem).toHaveBeenCalledWith(
+      'test-key',
+      JSON.stringify('new-value')
+    )
   })
 
   // 概要: 関数型の値更新が正しく動作することをテスト
   // 目的: setValue((prev) => newValue)の形式が正しく動作することを確認
   it('updates value using function updater', () => {
     localStorageMock.getItem.mockReturnValue(JSON.stringify(5))
-    
+
     const { result } = renderHook(() => useLocalStorage('test-key', 0))
-    
+
     act(() => {
       result.current[1]((prev: number) => prev + 1)
     })
-    
+
     expect(result.current[0]).toBe(6)
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('test-key', JSON.stringify(6))
+    expect(localStorageMock.setItem).toHaveBeenCalledWith(
+      'test-key',
+      JSON.stringify(6)
+    )
   })
 
   // 概要: オブジェクトや配列が正しく保存・復元されることをテスト
@@ -81,9 +93,11 @@ describe('useLocalStorage', () => {
   it('handles complex objects correctly', () => {
     const complexObject = { items: ['todo1', 'todo2'], count: 2 }
     localStorageMock.getItem.mockReturnValue(JSON.stringify(complexObject))
-    
-    const { result } = renderHook(() => useLocalStorage('test-key', { items: [], count: 0 }))
-    
+
+    const { result } = renderHook(() =>
+      useLocalStorage('test-key', { items: [], count: 0 })
+    )
+
     expect(result.current[0]).toEqual(complexObject)
   })
 
@@ -93,15 +107,19 @@ describe('useLocalStorage', () => {
     localStorageMock.getItem.mockImplementation(() => {
       throw new Error('Storage error')
     })
-    
+
     // コンソール警告をモック
-    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    
-    const { result } = renderHook(() => useLocalStorage('test-key', 'fallback-value'))
-    
+    const consoleWarnSpy = vi
+      .spyOn(console, 'warn')
+      .mockImplementation(() => {})
+
+    const { result } = renderHook(() =>
+      useLocalStorage('test-key', 'fallback-value')
+    )
+
     expect(result.current[0]).toBe('fallback-value')
     expect(consoleWarnSpy).toHaveBeenCalled()
-    
+
     consoleWarnSpy.mockRestore()
   })
 })

@@ -93,7 +93,10 @@ describe('useDarkMode', () => {
     })
 
     expect(result.current.isDarkMode).toBe(true)
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('darkMode', JSON.stringify(true))
+    expect(localStorageMock.setItem).toHaveBeenCalledWith(
+      'darkMode',
+      JSON.stringify(true)
+    )
   })
 
   // 概要: 手動設定機能をテスト
@@ -113,14 +116,20 @@ describe('useDarkMode', () => {
     })
 
     expect(result.current.isDarkMode).toBe(true)
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('darkMode', JSON.stringify(true))
+    expect(localStorageMock.setItem).toHaveBeenCalledWith(
+      'darkMode',
+      JSON.stringify(true)
+    )
 
     act(() => {
       result.current.setDarkMode(false)
     })
 
     expect(result.current.isDarkMode).toBe(false)
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('darkMode', JSON.stringify(false))
+    expect(localStorageMock.setItem).toHaveBeenCalledWith(
+      'darkMode',
+      JSON.stringify(false)
+    )
   })
 
   // 概要: システム設定変更時の動的更新をテスト
@@ -128,7 +137,7 @@ describe('useDarkMode', () => {
   it('updates when system preference changes', () => {
     const mockAddEventListener = vi.fn()
     const mockRemoveEventListener = vi.fn()
-    
+
     localStorageMock.getItem.mockReturnValue(null)
     matchMediaMock.mockReturnValue({
       matches: false,
@@ -138,11 +147,17 @@ describe('useDarkMode', () => {
 
     const { unmount } = renderHook(() => useDarkMode())
 
-    expect(mockAddEventListener).toHaveBeenCalledWith('change', expect.any(Function))
+    expect(mockAddEventListener).toHaveBeenCalledWith(
+      'change',
+      expect.any(Function)
+    )
 
     unmount()
 
-    expect(mockRemoveEventListener).toHaveBeenCalledWith('change', expect.any(Function))
+    expect(mockRemoveEventListener).toHaveBeenCalledWith(
+      'change',
+      expect.any(Function)
+    )
   })
 
   // 概要: エラー処理のテスト
