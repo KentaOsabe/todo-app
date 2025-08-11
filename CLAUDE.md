@@ -176,7 +176,7 @@ __tests__/
 
 #### Docker Setup
 
-- Development environment runs on Node.js 22.17.0 Alpine
+- Development environment runs on Node.js 22.18.0 Alpine
 - Hot reload enabled with volume mounting
 - Debug port 9229 exposed for remote debugging
 - Separate profiles for testing environments
