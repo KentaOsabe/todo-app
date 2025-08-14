@@ -20,7 +20,7 @@ import { TodoForm } from './TodoForm'
 import { FilterBar } from './FilterBar'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { useDarkMode } from '../hooks/useDarkMode'
-import { useCategories } from '../hooks/useCategories'
+import { useCategoryManagement } from '../hooks/useCategoryManagement'
 import { useFilters } from '../hooks/useFilters'
 import { useTodoSorting } from '../hooks/useTodoSorting'
 import { DndContext, closestCenter } from '@dnd-kit/core'
@@ -55,7 +55,7 @@ export const TodoApp = () => {
     }
   }
   const { isDarkMode, toggleDarkMode } = useDarkMode()
-  const { categories } = useCategories()
+  const { categories } = useCategoryManagement()
   const {
     filters,
     filteredTodos,
