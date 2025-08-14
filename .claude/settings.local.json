@@ -23,7 +23,10 @@
       "mcp__playwright__browser_hover",
       "mcp__playwright__browser_drag",
       "mcp__playwright__browser_wait_for",
-      "mcp__serena__get_symbols_overview"
+      "mcp__serena__get_symbols_overview",
+      "WebFetch(domain:mui.com)",
+      "mcp__serena__find_file",
+      "Bash(gh pr close:*)"
     ],
     "deny": []
   }
