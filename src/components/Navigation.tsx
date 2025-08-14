@@ -12,7 +12,7 @@ export const Navigation = () => {
   }
 
   return (
-    <AppBar position="static" color="default">
+    <AppBar position="static">
       <Tabs value={getTabValue()} aria-label="navigation tabs">
         <Tab label="Todo" component={Link} to="/" aria-label="Todo page" />
         <Tab

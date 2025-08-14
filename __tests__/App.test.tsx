@@ -1,9 +1,22 @@
 import { render, screen } from '@testing-library/react'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import App from '../src/App'
+import { useDarkMode } from '../src/hooks/useDarkMode'
+
+// useDarkModeフックをモック
+vi.mock('../src/hooks/useDarkMode')
+
+const mockUseDarkMode = vi.mocked(useDarkMode)
 
 describe('App Router', () => {
+  beforeEach(() => {
+    mockUseDarkMode.mockReturnValue({
+      isDarkMode: false,
+      toggleDarkMode: vi.fn(),
+      setDarkMode: vi.fn(),
+    })
+  })
   // 概要: ルートパスでTodoアプリが表示されることをテスト
   // 目的: / ルートが正しくTodoAppコンポーネントを表示することを保証
   it('renders TodoApp at root path', () => {
@@ -90,5 +103,27 @@ describe('App Router', () => {
     expect(
       screen.getByRole('tab', { name: 'Categories management page' })
     ).toBeInTheDocument()
+  })
+
+  // 概要: アプリ全体でThemeProviderが適用されることをテスト
+  // 目的: 全てのページでダークモードテーマが適用されることを保証
+  it('applies theme to all pages', () => {
+    mockUseDarkMode.mockReturnValue({
+      isDarkMode: true,
+      toggleDarkMode: vi.fn(),
+      setDarkMode: vi.fn(),
+    })
+
+    render(
+      <MemoryRouter initialEntries={['/categories']}>
+        <App />
+      </MemoryRouter>
+    )
+
+    // カテゴリ管理のheading要素を確認（ナビゲーションではない方）
+    const categoryHeading = screen.getByRole('heading', {
+      name: /カテゴリ管理/i,
+    })
+    expect(categoryHeading).toBeInTheDocument()
   })
 })
