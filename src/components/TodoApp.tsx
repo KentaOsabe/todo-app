@@ -1,30 +1,27 @@
-import { useMemo } from 'react'
-import {
-  Container,
-  Typography,
-  Box,
-  List,
-  Paper,
-  ThemeProvider,
-  createTheme,
-  IconButton,
-  CssBaseline,
-} from '@mui/material'
+import { DndContext, closestCenter } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import {
   DarkMode as DarkModeIcon,
   LightMode as LightModeIcon,
 } from '@mui/icons-material'
-import type { Todo, EditTodoData } from '../types/todo'
+import {
+  Box,
+  Container,
+  IconButton,
+  List,
+  Paper,
+  Typography,
+} from '@mui/material'
+import { useMemo } from 'react'
+import { useCategoryManagement } from '../hooks/useCategoryManagement'
+import { useDarkMode } from '../hooks/useDarkMode'
+import { useFilters } from '../hooks/useFilters'
+import { useLocalStorage } from '../hooks/useLocalStorage'
+import { useTodoSorting } from '../hooks/useTodoSorting'
+import type { EditTodoData, Todo } from '../types/todo'
+import { FilterBar } from './FilterBar'
 import { SortableTodoItem } from './SortableTodoItem'
 import { TodoForm } from './TodoForm'
-import { FilterBar } from './FilterBar'
-import { useLocalStorage } from '../hooks/useLocalStorage'
-import { useDarkMode } from '../hooks/useDarkMode'
-import { useCategoryManagement } from '../hooks/useCategoryManagement'
-import { useFilters } from '../hooks/useFilters'
-import { useTodoSorting } from '../hooks/useTodoSorting'
-import { DndContext, closestCenter } from '@dnd-kit/core'
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 
 export const TodoApp = () => {
   const [storedTodos, setStoredTodos] = useLocalStorage<Todo[]>('todos', [])
@@ -67,23 +64,6 @@ export const TodoApp = () => {
 
   // ドラッグ&ドロップによる並び替え機能
   const { sortedTodos, handleDragEnd } = useTodoSorting(filteredTodos, setTodos)
-
-  // ダークモードに応じて動的にテーマを作成
-  const theme = useMemo(
-    () =>
-      createTheme({
-        palette: {
-          mode: isDarkMode ? 'dark' : 'light',
-          primary: {
-            main: '#1976d2',
-          },
-          secondary: {
-            main: '#dc004e',
-          },
-        },
-      }),
-    [isDarkMode]
-  )
 
   const handleAddTodo = (data: {
     text: string
@@ -133,92 +113,89 @@ export const TodoApp = () => {
   }
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 2,
-          }}
+    <Container maxWidth="md" sx={{ py: 4 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 2,
+        }}
+      >
+        <Typography variant="h3" component="h1" color="primary">
+          Todo App
+        </Typography>
+        <IconButton
+          onClick={toggleDarkMode}
+          color="primary"
+          aria-label={
+            isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'
+          }
+          size="large"
         >
-          <Typography variant="h3" component="h1" color="primary">
-            Todo App
-          </Typography>
-          <IconButton
-            onClick={toggleDarkMode}
-            color="primary"
-            aria-label={
-              isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'
-            }
-            size="large"
+          {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
+        </IconButton>
+      </Box>
+
+      <TodoForm onSubmit={handleAddTodo} categories={categories} />
+
+      <FilterBar
+        filters={filters}
+        onFiltersChange={updateFilters}
+        onReset={resetFilters}
+        categories={categories}
+        availableTags={availableTags}
+        activeFilterCount={activeFilterCount}
+      />
+
+      {sortedTodos.length > 0 && (
+        <Paper elevation={2}>
+          <DndContext
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
           >
-            {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
-          </IconButton>
-        </Box>
-
-        <TodoForm onSubmit={handleAddTodo} categories={categories} />
-
-        <FilterBar
-          filters={filters}
-          onFiltersChange={updateFilters}
-          onReset={resetFilters}
-          categories={categories}
-          availableTags={availableTags}
-          activeFilterCount={activeFilterCount}
-        />
-
-        {sortedTodos.length > 0 && (
-          <Paper elevation={2}>
-            <DndContext
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
+            <SortableContext
+              items={sortedTodos.map(todo => todo.id)}
+              strategy={verticalListSortingStrategy}
             >
-              <SortableContext
-                items={sortedTodos.map(todo => todo.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <List>
-                  {sortedTodos.map(todo => (
-                    <SortableTodoItem
-                      key={todo.id}
-                      todo={todo}
-                      onToggle={handleToggleTodo}
-                      onDelete={handleDeleteTodo}
-                      onEdit={handleEditTodo}
-                      categories={categories}
-                    />
-                  ))}
-                </List>
-              </SortableContext>
-            </DndContext>
-          </Paper>
-        )}
+              <List>
+                {sortedTodos.map(todo => (
+                  <SortableTodoItem
+                    key={todo.id}
+                    todo={todo}
+                    onToggle={handleToggleTodo}
+                    onDelete={handleDeleteTodo}
+                    onEdit={handleEditTodo}
+                    categories={categories}
+                  />
+                ))}
+              </List>
+            </SortableContext>
+          </DndContext>
+        </Paper>
+      )}
 
-        {todos.length === 0 && (
-          <Typography
-            variant="body1"
-            align="center"
-            color="text.secondary"
-            sx={{ mt: 4 }}
-          >
-            No todos yet. Add one above to get started!
-          </Typography>
-        )}
+      {todos.length === 0 && (
+        <Typography
+          variant="body1"
+          align="center"
+          color="text.secondary"
+          sx={{ mt: 4 }}
+        >
+          No todos yet. Add one above to get started!
+        </Typography>
+      )}
 
-        {todos.length > 0 && sortedTodos.length === 0 && (
-          <Typography
-            variant="body1"
-            align="center"
-            color="text.secondary"
-            sx={{ mt: 4 }}
-          >
-            No todos match the current filters.
-          </Typography>
-        )}
-      </Container>
-    </ThemeProvider>
+      {todos.length > 0 && sortedTodos.length === 0 && (
+        <Typography
+          variant="body1"
+          align="center"
+          color="text.secondary"
+          sx={{ mt: 4 }}
+        >
+          No todos match the current filters.
+        </Typography>
+      )}
+    </Container>
   )
 }
