@@ -7,16 +7,25 @@ const DEFAULT_CATEGORIES: Category[] = [
     id: 'work',
     name: '仕事',
     color: '#1976d2',
+    description: '仕事関連のタスク',
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01'),
   },
   {
     id: 'private',
     name: 'プライベート',
     color: '#ff5722',
+    description: '個人的なタスク',
+    createdAt: new Date('2024-01-02'),
+    updatedAt: new Date('2024-01-02'),
   },
   {
     id: 'other',
     name: 'その他',
     color: '#9e9e9e',
+    description: 'その他のタスク',
+    createdAt: new Date('2024-01-03'),
+    updatedAt: new Date('2024-01-03'),
   },
 ]
 
@@ -34,10 +43,14 @@ export const useCategories = () => {
         return
       }
 
+      const now = new Date()
       const newCategory: Category = {
         id: `cat-${Date.now()}`,
         name,
         color,
+        description: '',
+        createdAt: now,
+        updatedAt: now,
       }
 
       setCategories(prev => [...prev, newCategory])
@@ -49,7 +62,9 @@ export const useCategories = () => {
     (id: string, name: string, color: string) => {
       setCategories(prev =>
         prev.map(category =>
-          category.id === id ? { ...category, name, color } : category
+          category.id === id
+            ? { ...category, name, color, updatedAt: new Date() }
+            : category
         )
       )
     },
