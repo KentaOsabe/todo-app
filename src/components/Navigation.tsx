@@ -8,7 +8,10 @@ import { Link, useLocation } from 'react-router-dom'
 
 const StyledTabs = styled(Tabs)(({ theme }) => ({
   '& .MuiTab-root': {
-    color: theme.palette.primary.contrastText,
+    color:
+      theme.palette.mode === 'dark'
+        ? theme.palette.grey[300]
+        : theme.palette.primary.contrastText,
   },
   '& .MuiTab-root.Mui-selected': {
     color: theme.palette.common.white,
