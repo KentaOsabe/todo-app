@@ -1,15 +1,48 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
+import { ThemeProvider, createTheme } from '@mui/material'
 import { Navigation } from '../../src/components/Navigation'
 
 const renderWithRouter = (initialPath: string) => {
+  const mockProps = {
+    isDarkMode: false,
+    toggleDarkMode: () => {},
+  }
+
   return render(
     <MemoryRouter
       initialEntries={[initialPath]}
       future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
     >
-      <Navigation />
+      <Navigation {...mockProps} />
+    </MemoryRouter>
+  )
+}
+
+const renderWithTheme = (
+  initialPath: string,
+  mode: 'light' | 'dark' = 'light'
+) => {
+  const theme = createTheme({
+    palette: {
+      mode,
+    },
+  })
+
+  const mockProps = {
+    isDarkMode: mode === 'dark',
+    toggleDarkMode: () => {},
+  }
+
+  return render(
+    <MemoryRouter
+      initialEntries={[initialPath]}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
+      <ThemeProvider theme={theme}>
+        <Navigation {...mockProps} />
+      </ThemeProvider>
     </MemoryRouter>
   )
 }
@@ -103,5 +136,38 @@ describe('Navigation', () => {
       name: 'Categories management page',
     })
     expect(categoryTab).toHaveAttribute('href', '/categories')
+  })
+
+  // 概要: ダークモード切り替えボタンが表示されることをテスト
+  // 目的: ナビゲーションにダークモード切り替え機能が含まれることを保証
+  it('displays dark mode toggle button', () => {
+    renderWithTheme('/', 'light')
+
+    const toggleButton = screen.getByRole('button', {
+      name: 'Switch to dark mode',
+    })
+    expect(toggleButton).toBeInTheDocument()
+  })
+
+  // 概要: ライトモード時に正しいアイコンが表示されることをテスト
+  // 目的: ダークモード切り替えボタンが現在の状態を正しく反映することを保証
+  it('shows dark mode icon when in light mode', () => {
+    renderWithTheme('/', 'light')
+
+    const toggleButton = screen.getByRole('button', {
+      name: 'Switch to dark mode',
+    })
+    expect(toggleButton).toBeInTheDocument()
+  })
+
+  // 概要: ダークモード時に正しいアイコンが表示されることをテスト
+  // 目的: ダークモード切り替えボタンが現在の状態を正しく反映することを保証
+  it('shows light mode icon when in dark mode', () => {
+    renderWithTheme('/', 'dark')
+
+    const toggleButton = screen.getByRole('button', {
+      name: 'Switch to light mode',
+    })
+    expect(toggleButton).toBeInTheDocument()
   })
 })

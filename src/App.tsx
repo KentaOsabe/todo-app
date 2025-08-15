@@ -15,7 +15,7 @@ import { useDarkMode } from './hooks/useDarkMode'
 import './App.css'
 
 function App() {
-  const { isDarkMode } = useDarkMode()
+  const { isDarkMode, toggleDarkMode } = useDarkMode()
 
   const theme = useMemo(
     () =>
@@ -31,7 +31,7 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <div className="App">
-        <Navigation />
+        <Navigation isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
         <Container
           maxWidth="md"
           sx={{
