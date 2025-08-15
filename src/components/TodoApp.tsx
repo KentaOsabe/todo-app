@@ -1,13 +1,8 @@
 import { DndContext, closestCenter } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import {
-  DarkMode as DarkModeIcon,
-  LightMode as LightModeIcon,
-} from '@mui/icons-material'
-import { Box, IconButton, List, Paper, Typography } from '@mui/material'
+import { Box, List, Paper, Typography } from '@mui/material'
 import { useMemo } from 'react'
 import { useCategoryManagement } from '../hooks/useCategoryManagement'
-import { useDarkMode } from '../hooks/useDarkMode'
 import { useFilters } from '../hooks/useFilters'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { useTodoSorting } from '../hooks/useTodoSorting'
@@ -44,7 +39,6 @@ export const TodoApp = () => {
       setStoredTodos(value)
     }
   }
-  const { isDarkMode, toggleDarkMode } = useDarkMode()
   const { categories } = useCategoryManagement()
   const {
     filters,
@@ -108,28 +102,9 @@ export const TodoApp = () => {
   return (
     <Box sx={{ flex: 1 }}>
       <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 2,
-          }}
-        >
-          <Typography variant="h3" component="h1" color="primary">
-            Todo App
-          </Typography>
-          <IconButton
-            onClick={toggleDarkMode}
-            color="primary"
-            aria-label={
-              isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'
-            }
-            size="large"
-          >
-            {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
-          </IconButton>
-        </Box>
+        <Typography variant="h3" component="h1" color="primary" sx={{ mb: 2 }}>
+          Todo App
+        </Typography>
 
         <TodoForm onSubmit={handleAddTodo} categories={categories} />
 
