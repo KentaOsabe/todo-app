@@ -41,7 +41,10 @@ vi.mock('../../src/hooks/useCategoryManagement', () => ({
 
 const renderWithRouter = (initialPath: string = '/categories/new') => {
   return render(
-    <MemoryRouter initialEntries={[initialPath]}>
+    <MemoryRouter
+      initialEntries={[initialPath]}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
       <CategoryForm />
     </MemoryRouter>
   )

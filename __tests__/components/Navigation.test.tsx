@@ -5,7 +5,10 @@ import { Navigation } from '../../src/components/Navigation'
 
 const renderWithRouter = (initialPath: string) => {
   return render(
-    <MemoryRouter initialEntries={[initialPath]}>
+    <MemoryRouter
+      initialEntries={[initialPath]}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
       <Navigation />
     </MemoryRouter>
   )

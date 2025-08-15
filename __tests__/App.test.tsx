@@ -21,7 +21,10 @@ describe('App Router', () => {
   // 目的: / ルートが正しくTodoAppコンポーネントを表示することを保証
   it('renders TodoApp at root path', () => {
     render(
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter
+        initialEntries={['/']}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <App />
       </MemoryRouter>
     )
@@ -37,7 +40,10 @@ describe('App Router', () => {
   // 目的: /categoriesルートが正しくCategoriesPageコンポーネントを表示することを保証
   it('renders CategoriesPage at /categories path', () => {
     render(
-      <MemoryRouter initialEntries={['/categories']}>
+      <MemoryRouter
+        initialEntries={['/categories']}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <App />
       </MemoryRouter>
     )
@@ -51,7 +57,10 @@ describe('App Router', () => {
   // 目的: /categories/newルートが正しくCategoryFormコンポーネントを表示することを保証
   it('renders CategoryForm at /categories/new path', () => {
     render(
-      <MemoryRouter initialEntries={['/categories/new']}>
+      <MemoryRouter
+        initialEntries={['/categories/new']}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <App />
       </MemoryRouter>
     )
@@ -64,7 +73,10 @@ describe('App Router', () => {
   // 目的: /categories/:id/editルートが正しくCategoryFormコンポーネントを表示することを保証
   it('renders CategoryForm at /categories/:id/edit path', () => {
     render(
-      <MemoryRouter initialEntries={['/categories/work/edit']}>
+      <MemoryRouter
+        initialEntries={['/categories/work/edit']}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <App />
       </MemoryRouter>
     )
@@ -77,7 +89,10 @@ describe('App Router', () => {
   // 目的: 存在しないルートが正しくNotFoundPageコンポーネントを表示することを保証
   it('renders NotFoundPage for non-existent paths', () => {
     render(
-      <MemoryRouter initialEntries={['/non-existent']}>
+      <MemoryRouter
+        initialEntries={['/non-existent']}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <App />
       </MemoryRouter>
     )
@@ -90,7 +105,10 @@ describe('App Router', () => {
   // 目的: Navigationコンポーネントが各ルートで正しく表示されることを保証
   it('renders Navigation on all pages', () => {
     render(
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter
+        initialEntries={['/']}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <App />
       </MemoryRouter>
     )
@@ -115,7 +133,10 @@ describe('App Router', () => {
     })
 
     render(
-      <MemoryRouter initialEntries={['/categories']}>
+      <MemoryRouter
+        initialEntries={['/categories']}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <App />
       </MemoryRouter>
     )
