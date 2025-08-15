@@ -16,6 +16,7 @@ dist-ssr
 .vscode/chrome-debug-user-data
 .serena/cache*
 .serena/memories*
+.claude/
 test-results*
 playwright-report*
 .idea
