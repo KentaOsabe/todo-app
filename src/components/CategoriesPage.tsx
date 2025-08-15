@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Container,
   Paper,
   Box,
   Typography,
@@ -9,7 +8,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemSecondaryAction,
   IconButton,
   Chip,
   Stack,
@@ -74,7 +72,7 @@ export const CategoriesPage = () => {
   }
 
   return (
-    <Container maxWidth="md">
+    <Box sx={{ flex: 1 }}>
       <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
         <Box
           display="flex"
@@ -106,7 +104,32 @@ export const CategoriesPage = () => {
         ) : (
           <List>
             {categories.map(category => (
-              <ListItem key={category.id} divider sx={{ py: 2 }}>
+              <ListItem
+                key={category.id}
+                divider
+                sx={{ py: 2 }}
+                secondaryAction={
+                  <Stack direction="row" spacing={1}>
+                    <IconButton
+                      edge="end"
+                      aria-label="編集"
+                      onClick={() => handleEditCategory(category.id)}
+                      size="small"
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      edge="end"
+                      aria-label="削除"
+                      onClick={() => handleDeleteCategory(category.id)}
+                      size="small"
+                      color="error"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Stack>
+                }
+              >
                 <Box display="flex" alignItems="center" mr={2}>
                   <Chip
                     data-testid={`category-color-${category.id}`}
@@ -135,27 +158,6 @@ export const CategoriesPage = () => {
                     </>
                   }
                 />
-                <ListItemSecondaryAction>
-                  <Stack direction="row" spacing={1}>
-                    <IconButton
-                      edge="end"
-                      aria-label="編集"
-                      onClick={() => handleEditCategory(category.id)}
-                      size="small"
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      edge="end"
-                      aria-label="削除"
-                      onClick={() => handleDeleteCategory(category.id)}
-                      size="small"
-                      color="error"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Stack>
-                </ListItemSecondaryAction>
               </ListItem>
             ))}
           </List>
@@ -172,6 +174,6 @@ export const CategoriesPage = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Container>
+    </Box>
   )
 }

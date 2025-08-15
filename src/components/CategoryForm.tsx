@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
-  Container,
   Paper,
   Box,
   Typography,
@@ -43,11 +42,11 @@ export const CategoryForm = () => {
   // 編集モードで存在しないカテゴリの場合
   if (isEdit && !existingCategory) {
     return (
-      <Container maxWidth="md">
+      <Box sx={{ flex: 1 }}>
         <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
           <Alert severity="error">カテゴリが見つかりません</Alert>
         </Paper>
-      </Container>
+      </Box>
     )
   }
 
@@ -116,7 +115,7 @@ export const CategoryForm = () => {
   }
 
   return (
-    <Container maxWidth="md">
+    <Box sx={{ flex: 1 }}>
       <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
           {isEdit ? 'カテゴリ編集' : 'カテゴリ新規作成'}
@@ -164,6 +163,6 @@ export const CategoryForm = () => {
           </Stack>
         </Box>
       </Paper>
-    </Container>
+    </Box>
   )
 }

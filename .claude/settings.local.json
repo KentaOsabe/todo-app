@@ -26,7 +26,8 @@
       "mcp__serena__get_symbols_overview",
       "WebFetch(domain:mui.com)",
       "mcp__serena__find_file",
-      "Bash(gh pr close:*)"
+      "Bash(gh pr close:*)",
+      "mcp__playwright__browser_install"
     ],
     "deny": []
   }

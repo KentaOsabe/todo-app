@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Container, Paper, Box, Typography, Button, Stack } from '@mui/material'
+import { Paper, Box, Typography, Button, Stack } from '@mui/material'
 import { Home as HomeIcon, Category as CategoryIcon } from '@mui/icons-material'
 
 export const NotFoundPage = () => {
@@ -14,8 +14,11 @@ export const NotFoundPage = () => {
   }
 
   return (
-    <Container maxWidth="md">
-      <Paper elevation={3} sx={{ p: 6, mt: 8, textAlign: 'center' }}>
+    <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+      <Paper
+        elevation={3}
+        sx={{ p: 6, mt: 8, textAlign: 'center', width: '100%' }}
+      >
         <Box mb={4}>
           <Typography
             variant="h1"
@@ -63,6 +66,6 @@ export const NotFoundPage = () => {
           </Button>
         </Stack>
       </Paper>
-    </Container>
+    </Box>
   )
 }
