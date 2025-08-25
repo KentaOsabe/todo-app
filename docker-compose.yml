@@ -1,13 +1,13 @@
-version: '3.8'
-
 services:
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
     ports:
       - '5173:5173'
       - '9229:9229'
     volumes:
-      - .:/app
+      - ./frontend:/app
       - /app/node_modules
     environment:
       - NODE_ENV=development
@@ -15,18 +15,22 @@ services:
     tty: true
 
   test:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
     volumes:
-      - .:/app
+      - ./frontend:/app
       - /app/node_modules
     command: npm run test
     profiles:
       - test
 
   e2e:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
     volumes:
-      - .:/app
+      - ./frontend:/app
       - /app/node_modules
     command: npm run test:e2e
     profiles:
