@@ -59,5 +59,4 @@ npm run dev
 
 ## 今後の予定
 
-LocalStorageからMySQL + Ruby on Rails APIサーバーへの移行を計画中。
-詳細は [Issue #19](https://github.com/KentaOsabe/react-todo/issues/19) を参照。
+LocalStorageからMySQL + Ruby on Rails APIサーバーへの移行を計画中。詳細は[Issue #19](https://github.com/KentaOsabe/todo-app/issues/19)を参照。
