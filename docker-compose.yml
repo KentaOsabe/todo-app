@@ -15,6 +15,28 @@ services:
     tty: true
     depends_on:
       - mysql
+      - backend
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - '3001:3000'
+    volumes:
+      - ./backend:/app
+      - /app/tmp
+      - /app/log
+    environment:
+      - RAILS_ENV=development
+      - DATABASE_HOST=mysql
+      - DATABASE_USERNAME=todo_user
+      - DATABASE_PASSWORD=todo_password
+      - DATABASE_NAME=todo_development
+    depends_on:
+      - mysql
+    stdin_open: true
+    tty: true
 
   mysql:
     image: mysql:8.0.43
