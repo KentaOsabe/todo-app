@@ -1,0 +1,32 @@
+FROM ruby:3.4.5-alpine
+
+# 必要なパッケージをインストール
+RUN apk add --no-cache \
+  build-base \
+  mysql-dev \
+  tzdata \
+  nodejs \
+  yarn \
+  git \
+  yaml-dev \
+  linux-headers
+
+# タイムゾーン設定
+ENV TZ=Asia/Tokyo
+
+WORKDIR /app
+
+# Gemfile系をコピー
+COPY backend/Gemfile* ./
+
+# Bundlerでgemをインストール
+RUN if [ -f Gemfile ]; then bundle install --jobs 4 --retry 3; fi
+
+# アプリケーションファイルをコピー
+COPY backend/ .
+
+# ポート3000を公開
+EXPOSE 3000
+
+# サーバー起動コマンド
+CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]

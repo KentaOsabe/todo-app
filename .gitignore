@@ -29,3 +29,9 @@ playwright-report*
 *.njsproj
 *.sln
 *.sw?
+
+# Rails
+backend/config/master.key
+
+# Environment variables
+.env
