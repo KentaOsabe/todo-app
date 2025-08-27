@@ -33,6 +33,7 @@ services:
       - DATABASE_USERNAME=todo_user
       - DATABASE_PASSWORD=todo_password
       - DATABASE_NAME=todo_development
+      - RAILS_MASTER_KEY=${RAILS_MASTER_KEY}
     depends_on:
       - mysql
     stdin_open: true
