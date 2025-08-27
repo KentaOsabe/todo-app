@@ -13,6 +13,24 @@ services:
       - NODE_ENV=development
     stdin_open: true
     tty: true
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.0.43
+    container_name: todo-mysql
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: todo_development
+      MYSQL_USER: todo_user
+      MYSQL_PASSWORD: todo_password
+      TZ: Asia/Tokyo
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-time-zone='+09:00'
+    restart: unless-stopped
 
   test:
     build:
@@ -37,3 +55,7 @@ services:
       - e2e
     depends_on:
       - app
+
+volumes:
+  mysql_data:
+    driver: local
