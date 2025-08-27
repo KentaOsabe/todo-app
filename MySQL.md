@@ -81,23 +81,33 @@ SELECT 'MySQL connection successful' AS status;
 SELECT @@character_set_database, @@collation_database;
 SELECT @@global.time_zone, @@session.time_zone;
 
--- テストテーブル確認
-SELECT * FROM connection_test;
-
 -- 現在の日時確認（タイムゾーン設定確認）
 SELECT NOW() AS current_time, @@session.time_zone AS timezone;
+
+-- データベース一覧確認
+SHOW DATABASES;
+
+-- 現在のデータベース確認
+SELECT DATABASE() AS current_database;
 ```
 
 ## データ永続化テスト
 
-### 1. データの挿入テスト
+### 1. テストテーブルの作成とデータ挿入
 
 ```sql
+-- テスト用テーブルの作成
+CREATE TABLE IF NOT EXISTS test_persistence (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  message VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- テストデータの挿入
-INSERT INTO connection_test (message) VALUES ('Data persistence test');
+INSERT INTO test_persistence (message) VALUES ('Data persistence test');
 
 -- データの確認
-SELECT * FROM connection_test ORDER BY created_at DESC;
+SELECT * FROM test_persistence ORDER BY created_at DESC;
 ```
 
 ### 2. コンテナ再起動テスト
@@ -110,7 +120,7 @@ docker compose down
 docker compose up -d mysql
 
 # データが保持されているか確認
-docker compose exec mysql mysql -u todo_user -p todo_development -e "SELECT * FROM connection_test;"
+docker compose exec mysql mysql -u todo_user -p todo_development -e "SELECT * FROM test_persistence;"
 ```
 
 ### 3. ボリュームの確認
