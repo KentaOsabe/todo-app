@@ -1,4 +1,4 @@
-# React Todo App
+# Todo App
 
 React + TypeScript + Vite のフロントエンドと Ruby on Rails API のバックエンドで構築されたフルスタックTodoアプリケーションです。カテゴリ管理、フィルタリング、ダークモード対応などの機能を持ちます。
 
