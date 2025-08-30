@@ -1,11 +1,11 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  text: MyText
+  text: プロジェクトの進捗報告書を作成する
   completed: false
   category: one
 
 two:
-  text: MyText
-  completed: false
+  text: 友人とディナーの予定を立てる
+  completed: true
   category: two
