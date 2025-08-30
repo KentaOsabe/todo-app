@@ -1,6 +1,6 @@
-# Docker での React Todo アプリ起動・停止方法
+# Docker での Todo アプリ起動・停止方法
 
-このドキュメントでは、Docker Compose を使用してReact Todo アプリケーションを起動・停止する方法について説明します。
+このドキュメントでは、Docker Compose を使用してTodo アプリケーション（React フロントエンド + Rails API バックエンド）を起動・停止する方法について説明します。
 
 ## 前提条件
 
@@ -14,13 +14,14 @@
 アプリケーションをバックグラウンドで起動し、ターミナルを他の作業に使用できるようにします：
 
 ```bash
+# フロントエンドのみ起動
 docker compose up -d app
-```
 
-または、全てのサービスをバックグラウンドで起動：
-
-```bash
+# フロントエンド + バックエンド + MySQL の起動
 docker compose up -d
+
+# バックエンドのみ起動（開発・テスト用）
+docker compose up -d backend mysql
 ```
 
 ### フォアグラウンドでの起動
@@ -28,15 +29,33 @@ docker compose up -d
 ログをリアルタイムで確認したい場合：
 
 ```bash
+# フロントエンドのログを確認
 docker compose up app
+
+# 全サービスのログを確認
+docker compose up
 ```
 
 ## アプリケーションの確認
 
 アプリケーションが起動したら、以下のURLでアクセスできます：
 
+### フロントエンド（React アプリ）
 - **ローカル**: http://localhost:5173/
 - **ネットワーク**: http://172.x.x.x:5173/ （コンテナのIPアドレス）
+
+### バックエンド（Rails API）
+- **ローカル**: http://localhost:3001/
+- **APIエンドポイント例**:
+  - `GET http://localhost:3001/api/categories` - カテゴリ一覧
+  - `GET http://localhost:3001/api/todos` - Todo一覧
+
+### データベース（MySQL）
+- **接続情報**:
+  - Host: localhost:3306
+  - Database: todo_development
+  - Username: todo_user
+  - Password: todo_password
 
 ## ログの確認
 
@@ -46,11 +65,18 @@ docker compose up app
 # 全てのサービスのログを表示
 docker compose logs
 
-# 特定のサービス（app）のログを表示
+# フロントエンドのログを表示
 docker compose logs app
+
+# バックエンドのログを表示
+docker compose logs backend
+
+# データベースのログを表示
+docker compose logs mysql
 
 # リアルタイムでログを追跡
 docker compose logs -f app
+docker compose logs -f backend
 ```
 
 ## アプリケーションの停止
@@ -180,7 +206,9 @@ services:
 
 ## テストの実行
 
-### 単体テスト（Unit Tests）
+### フロントエンド テスト
+
+#### 単体テスト（Unit Tests）
 
 Vitestを使用した単体テストをDockerコンテナ内で実行：
 
@@ -190,15 +218,18 @@ docker compose --profile test run --rm test
 
 # または、直接コマンドを指定して実行
 docker compose run --rm app npm run test:run
+
+# ウォッチモードでテスト実行
+docker compose run --rm app npm run test
 ```
 
-### E2Eテスト（End-to-End Tests）
+#### E2Eテスト（End-to-End Tests）
 
 PlaywrightによるE2EテストはDockerコンテナではなく、ローカル環境で実行することを推奨：
 
 ```bash
 # アプリケーションをDockerで起動
-docker compose up -d app
+docker compose up -d
 
 # E2Eテストをローカルで実行（別のターミナル）
 npm run test:e2e
@@ -209,9 +240,41 @@ npm run test:e2e:ui
 
 **注意**: E2Eテストはブラウザが必要なため、ローカル環境での実行が推奨されます。
 
+### バックエンド テスト
+
+#### Rails モデル・コントローラテスト
+
+Minitestを使用したRailsテストをDockerコンテナ内で実行：
+
+```bash
+# 全てのRailsテストを実行
+docker compose run --rm backend rails test
+
+# 特定のテストファイルを実行
+docker compose run --rm backend rails test test/models/category_test.rb
+
+# 特定のテストケースを実行
+docker compose run --rm backend rails test test/models/todo_test.rb::TodoTest#test_should_require_text
+
+# テスト結果を詳細表示
+docker compose run --rm backend rails test --verbose
+```
+
+#### データベース関連のテスト準備
+
+テスト実行前にテストデータベースの準備が必要な場合：
+
+```bash
+# テストデータベースのセットアップ
+docker compose run --rm backend rails db:test:prepare
+
+# テスト用のマイグレーション実行
+docker compose run --rm backend rails db:migrate RAILS_ENV=test
+```
+
 ### テスト用のワークフロー
 
-1. **開発中の継続的テスト**:
+1. **フロントエンド開発中の継続的テスト**:
    ```bash
    # アプリケーション起動
    docker compose up -d app
@@ -220,23 +283,43 @@ npm run test:e2e:ui
    docker compose run --rm app npm run test
    ```
 
-2. **E2Eテスト用の推奨ワークフロー**:
+2. **バックエンド開発中の継続的テスト**:
    ```bash
-   # アプリケーションをDockerで起動
-   docker compose up -d app
+   # バックエンド + データベース起動
+   docker compose up -d backend mysql
+   
+   # Railsテストを実行
+   docker compose run --rm backend rails test --verbose
+   ```
+
+3. **フルスタック統合テスト**:
+   ```bash
+   # 全サービス起動
+   docker compose up -d
+   
+   # バックエンドテスト実行
+   docker compose run --rm backend rails test
+   
+   # フロントエンド単体テスト実行
+   docker compose run --rm app npm run test:run
    
    # E2Eテストをローカルで実行（別のターミナル）
    npm run test:e2e
    ```
 
-3. **CI/CD用の一括テスト**:
+4. **CI/CD用の一括テスト**:
    ```bash
-   # 単体テストのみDockerで実行
+   # 全サービスビルド・起動
    docker compose build --no-cache
+   docker compose up -d
+   
+   # バックエンドテスト
+   docker compose run --rm backend rails test
+   
+   # フロントエンドテスト
    docker compose --profile test run --rm test
    
-   # E2Eテストは別途ローカル環境で実行
-   docker compose up -d app
+   # E2Eテスト（別途ローカル環境）
    npm run test:e2e
    docker compose down
    ```
@@ -269,16 +352,120 @@ docker compose build --no-cache app
 docker compose --profile test run --rm test
 ```
 
+## Rails 開発コマンド
+
+### データベース操作
+
+```bash
+# マイグレーション実行
+docker compose run --rm backend rails db:migrate
+
+# シードデータ投入
+docker compose run --rm backend rails db:seed
+
+# データベース初期化（危険：全データ削除）
+docker compose run --rm backend rails db:drop db:create db:migrate db:seed
+
+# マイグレーション状況確認
+docker compose run --rm backend rails db:migrate:status
+
+# 新しいマイグレーション作成
+docker compose run --rm backend rails generate migration CreateNewTable
+```
+
+### Rails コンソール・ジェネレーター
+
+```bash
+# Rails コンソール起動
+docker compose run --rm backend rails console
+
+# モデル生成
+docker compose run --rm backend rails generate model ModelName attribute:type
+
+# コントローラー生成
+docker compose run --rm backend rails generate controller ControllerName
+
+# マイグレーション生成
+docker compose run --rm backend rails generate migration AddColumnToTable column:type
+```
+
+### Rails ルーティング・設定確認
+
+```bash
+# ルーティング一覧表示
+docker compose run --rm backend rails routes
+
+# 設定値確認
+docker compose run --rm backend rails runner "puts Rails.application.config.database_configuration"
+
+# アプリケーション情報
+docker compose run --rm backend rails about
+```
+
+## トラブルシューティング
+
+### Rails 固有の問題
+
+#### マイグレーションエラーが発生する場合
+
+```bash
+# マイグレーション状況を確認
+docker compose run --rm backend rails db:migrate:status
+
+# 特定のマイグレーションをロールバック
+docker compose run --rm backend rails db:rollback STEP=1
+
+# 特定のバージョンにロールバック
+docker compose run --rm backend rails db:migrate:down VERSION=20250830000001
+```
+
+#### データベース接続エラーが発生する場合
+
+```bash
+# MySQLサービスの状況確認
+docker compose ps mysql
+docker compose logs mysql
+
+# MySQL接続テスト
+docker compose exec mysql mysql -u todo_user -ptodo_password todo_development -e "SELECT 1"
+
+# データベース再作成
+docker compose run --rm backend rails db:drop db:create db:migrate db:seed
+```
+
+#### Rails Master Key エラーが発生する場合
+
+```bash
+# .envファイルの確認
+cat .env
+
+# 新しいRAILS_MASTER_KEYの生成
+docker compose run --rm backend ruby -c "require 'securerandom'; puts SecureRandom.hex(16)"
+
+# credentials.yml.encの再生成（注意：既存の設定は失われます）
+docker compose run --rm -e EDITOR=nano backend rails credentials:edit
+```
+
 ## 便利なエイリアス
 
 以下のエイリアスを `.bashrc` や `.zshrc` に追加すると便利です：
 
 ```bash
+# 基本操作
 alias dc="docker compose"
 alias dcup="docker compose up -d"
 alias dcdown="docker compose down"
 alias dclogs="docker compose logs -f"
 alias dcps="docker compose ps"
+
+# フロントエンド
 alias dctest="docker compose --profile test run --rm test"
 alias dce2e="npm run test:e2e"
+
+# バックエンド
+alias dcrails="docker compose run --rm backend rails"
+alias dcmigrate="docker compose run --rm backend rails db:migrate"
+alias dcseed="docker compose run --rm backend rails db:seed"
+alias dcconsole="docker compose run --rm backend rails console"
+alias dcrtest="docker compose run --rm backend rails test"
 ```
