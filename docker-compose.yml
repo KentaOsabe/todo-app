@@ -77,7 +77,7 @@ services:
     profiles:
       - e2e
     depends_on:
-      - app
+      - frontend
 
 volumes:
   mysql_data:
