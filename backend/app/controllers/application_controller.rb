@@ -25,4 +25,11 @@ class ApplicationController < ActionController::API
     header = request.headers['X-Force-Db-Error'] || request.headers['HTTP_X_FORCE_DB_ERROR']
     raise ActiveRecord::ConnectionNotEstablished if header.to_s == '1'
   end
+
+  # 各コントローラでのバリデーションエラー整形の共通実装（互換維持）
+  def format_errors(record)
+    record.errors.map do |error|
+      { code: "VALIDATION_ERROR", field: error.attribute, message: error.full_message }
+    end
+  end
 end

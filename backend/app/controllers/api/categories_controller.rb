@@ -1,8 +1,10 @@
 module Api
   class CategoriesController < ApplicationController
+    ALLOWED_SORTS = %w[id name created_at].freeze
+    ALLOWED_ORDERS = %w[asc desc].freeze
     def index
-      sort = params[:sort].presence_in(%w[id name created_at]) || "id"
-      direction = params[:order].to_s.downcase == "desc" ? :desc : :asc
+      sort = ALLOWED_SORTS.include?(params[:sort]) ? params[:sort] : "id"
+      direction = ALLOWED_ORDERS.include?(params[:order].to_s.downcase) ? params[:order].to_s.downcase.to_sym : :asc
       categories = Category.all.order(sort => direction)
       render json: { data: categories.as_json(only: [:id, :name, :created_at, :updated_at]) }
     end
@@ -40,12 +42,6 @@ module Api
 
     def category_params
       params.permit(:name)
-    end
-
-    def format_errors(record)
-      record.errors.map do |error|
-        { code: "VALIDATION_ERROR", field: error.attribute, message: error.full_message }
-      end
     end
   end
 end

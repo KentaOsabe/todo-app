@@ -21,6 +21,39 @@ class TodosControllerTest < ActionDispatch::IntegrationTest
     assert_includes texts, @other_todo.text
   end
 
+  # 概要: ソートの正常系（text降順）をテスト
+  # 目的: sort=text&order=desc でテキストが降順に並ぶことを保証
+  test "GET /api/todos supports sorting by text desc" do
+    t1 = Todo.create!(text: "a", completed: false, category: @category)
+    t2 = Todo.create!(text: "b", completed: false, category: @category)
+    t3 = Todo.create!(text: "c", completed: false, category: @category)
+
+    get "/api/todos", params: { sort: "text", order: "desc" }
+    assert_response :success
+
+    json = JSON.parse(response.body)
+    texts = json["data"].map { |x| x["text"] }
+    subset = texts.select { |t| ["a", "b", "c"].include?(t) }
+    assert_equal ["c", "b", "a"], subset
+  end
+
+  # 概要: ソートの不正値をテスト
+  # 目的: sort,orderの不正値指定時に安全なデフォルト（id昇順）となることを保証
+  test "GET /api/todos falls back to id asc on invalid sort/order" do
+    t1 = Todo.create!(text: "x1", completed: false, category: @category)
+    t2 = Todo.create!(text: "x2", completed: false, category: @category)
+    t3 = Todo.create!(text: "x3", completed: false, category: @category)
+
+    get "/api/todos", params: { sort: "unknown", order: "up" }
+    assert_response :success
+
+    json = JSON.parse(response.body)
+    list = json["data"]
+    subset = list.select { |t| [t1.id, t2.id, t3.id].include?(t["id"]) }
+    ids_in_order = subset.map { |t| t["id"] }
+    assert_equal [t1.id, t2.id, t3.id].sort, ids_in_order
+  end
+
   # 概要: Todo一覧のフィルタリング(完了フラグ)をテスト
   # 目的: completed=true を指定した場合、完了したTodoのみ返すことを保証
   test "GET /api/todos filters by completed" do

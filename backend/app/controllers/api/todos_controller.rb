@@ -1,5 +1,7 @@
 module Api
   class TodosController < ApplicationController
+    ALLOWED_SORTS = %w[id created_at text].freeze
+    ALLOWED_ORDERS = %w[asc desc].freeze
     def index
       todos = Todo.all
       if params.key?(:completed)
@@ -10,8 +12,8 @@ module Api
         todos = todos.where(category_id: params[:category_id])
       end
       # sorting
-      sort = params[:sort].presence_in(%w[id created_at text]) || "id"
-      direction = params[:order].to_s.downcase == "desc" ? :desc : :asc
+      sort = ALLOWED_SORTS.include?(params[:sort]) ? params[:sort] : "id"
+      direction = ALLOWED_ORDERS.include?(params[:order].to_s.downcase) ? params[:order].to_s.downcase.to_sym : :asc
       todos = todos.order(sort => direction)
       render json: { data: todos.as_json(only: [:id, :text, :completed, :category_id, :created_at, :updated_at]) }
     end
@@ -49,12 +51,6 @@ module Api
 
     def todo_params
       params.permit(:text, :completed, :category_id)
-    end
-
-    def format_errors(record)
-      record.errors.map do |error|
-        { code: "VALIDATION_ERROR", field: error.attribute, message: error.full_message }
-      end
     end
   end
 end

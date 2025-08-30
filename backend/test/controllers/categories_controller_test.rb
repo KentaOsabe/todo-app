@@ -19,6 +19,39 @@ class CategoriesControllerTest < ActionDispatch::IntegrationTest
     assert_includes names, @other.name
   end
 
+  # 概要: ソートの正常系（name昇順）をテスト
+  # 目的: sort=name&order=asc で名前順に並ぶことを保証
+  test "GET /api/categories supports sorting by name asc" do
+    a = Category.create!(name: "A")
+    b = Category.create!(name: "B")
+    c = Category.create!(name: "C")
+
+    get "/api/categories", params: { sort: "name", order: "asc" }
+    assert_response :success
+
+    json = JSON.parse(response.body)
+    names = json["data"].map { |x| x["name"] }
+    subset = names.select { |n| ["A", "B", "C"].include?(n) }
+    assert_equal ["A", "B", "C"], subset
+  end
+
+  # 概要: ソートの不正値をテスト
+  # 目的: sort,orderの不正値指定時に安全なデフォルト（id昇順）となることを保証
+  test "GET /api/categories falls back to id asc on invalid sort/order" do
+    x = Category.create!(name: "X")
+    y = Category.create!(name: "Y")
+    z = Category.create!(name: "Z")
+
+    get "/api/categories", params: { sort: "unknown", order: "sideways" }
+    assert_response :success
+
+    json = JSON.parse(response.body)
+    list = json["data"]
+    subset = list.select { |c| [x.id, y.id, z.id].include?(c["id"]) }
+    ids_in_order = subset.map { |c| c["id"] }
+    assert_equal [x.id, y.id, z.id].sort, ids_in_order
+  end
+
   # 概要: カテゴリ詳細APIの基本動作をテスト
   # 目的: /api/categories/:id が200を返し、指定カテゴリのJSONを返却することを保証
   test "GET /api/categories/:id returns item" do
