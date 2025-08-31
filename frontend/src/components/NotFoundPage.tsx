@@ -1,30 +1,33 @@
-import { useNavigate } from 'react-router-dom'
-import { Paper, Box, Typography, Button, Stack } from '@mui/material'
-import { Home as HomeIcon, Category as CategoryIcon } from '@mui/icons-material'
+import { useNavigate } from "react-router-dom";
+import { Paper, Box, Typography, Button, Stack } from "@mui/material";
+import {
+  Home as HomeIcon,
+  Category as CategoryIcon,
+} from "@mui/icons-material";
 
 export const NotFoundPage = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleGoHome = () => {
-    navigate('/')
-  }
+    navigate("/");
+  };
 
   const handleGoCategories = () => {
-    navigate('/categories')
-  }
+    navigate("/categories");
+  };
 
   return (
-    <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+    <Box sx={{ flex: 1, display: "flex", alignItems: "center" }}>
       <Paper
         elevation={3}
-        sx={{ p: 6, mt: 8, textAlign: 'center', width: '100%' }}
+        sx={{ p: 6, mt: 8, textAlign: "center", width: "100%" }}
       >
         <Box mb={4}>
           <Typography
             variant="h1"
             component="h1"
             color="error"
-            sx={{ fontSize: '6rem', fontWeight: 'bold' }}
+            sx={{ fontSize: "6rem", fontWeight: "bold" }}
           >
             404
           </Typography>
@@ -67,5 +70,5 @@ export const NotFoundPage = () => {
         </Stack>
       </Paper>
     </Box>
-  )
-}
+  );
+};

@@ -15,7 +15,7 @@
 
 ```bash
 # フロントエンドのみ起動
-docker compose up -d app
+docker compose up -d frontend
 
 # フロントエンド + バックエンド + MySQL の起動
 docker compose up -d
@@ -30,7 +30,7 @@ docker compose up -d backend mysql
 
 ```bash
 # フロントエンドのログを確認
-docker compose up app
+docker compose up frontend
 
 # 全サービスのログを確認
 docker compose up
@@ -66,7 +66,7 @@ docker compose up
 docker compose logs
 
 # フロントエンドのログを表示
-docker compose logs app
+docker compose logs frontend
 
 # バックエンドのログを表示
 docker compose logs backend
@@ -75,7 +75,7 @@ docker compose logs backend
 docker compose logs mysql
 
 # リアルタイムでログを追跡
-docker compose logs -f app
+docker compose logs -f frontend
 docker compose logs -f backend
 ```
 
@@ -90,7 +90,7 @@ docker compose down
 ### 特定のサービスのみを停止
 
 ```bash
-docker compose stop app
+docker compose stop frontend
 ```
 
 ### フォアグラウンドで動作している場合
@@ -102,7 +102,7 @@ docker compose stop app
 ### アプリケーションの再起動
 
 ```bash
-docker compose restart app
+docker compose restart frontend
 ```
 
 ### コンテナの状態確認
@@ -116,14 +116,14 @@ docker compose ps
 ソースコードを変更してDockerfileやpackage.jsonを更新した場合：
 
 ```bash
-docker compose build app
-docker compose up -d app
+docker compose build frontend
+docker compose up -d frontend
 ```
 
 または、ビルドと起動を同時に実行：
 
 ```bash
-docker compose up -d --build app
+docker compose up -d --build frontend
 ```
 
 ### 依存関係を追加した場合の完全再ビルド
@@ -132,15 +132,15 @@ docker compose up -d --build app
 
 ```bash
 # キャッシュを無効にして完全再ビルド
-docker compose build --no-cache app
-docker compose up -d app
+docker compose build --no-cache frontend
+docker compose up -d frontend
 ```
 
 または、コンテナとボリュームを削除してから再ビルド：
 
 ```bash
 docker compose down -v
-docker compose up -d --build app
+docker compose up -d --build frontend
 ```
 
 ### コンテナとボリュームの完全削除
@@ -155,17 +155,17 @@ docker compose down -v
 
 1. **初回起動**:
    ```bash
-   docker compose up -d --build app
+docker compose up -d --build
    ```
 
 2. **日常的な起動**:
    ```bash
-   docker compose up -d app
+docker compose up -d
    ```
 
 3. **ログ確認**:
    ```bash
-   docker compose logs -f app
+docker compose logs -f
    ```
 
 4. **停止**:
@@ -181,27 +181,27 @@ docker compose down -v
 
 ```yaml
 services:
-  app:
+  frontend:
     ports:
-      - "3000:5173"  # ホストの3000番ポートにマッピング
+      - "9000:5173"  # ホストの9000番ポートにマッピング
 ```
 
 ### コンテナが起動しない場合
 
 1. ログを確認：
    ```bash
-   docker compose logs app
+   docker compose logs
    ```
 
 2. コンテナを再ビルド：
    ```bash
-   docker compose build --no-cache app
+   docker compose build --no-cache
    ```
 
 3. 完全にクリーンアップしてから再起動：
    ```bash
    docker compose down -v
-   docker compose up -d --build app
+   docker compose up -d --build
    ```
 
 ## テストの実行
@@ -210,17 +210,16 @@ services:
 
 #### 単体テスト（Unit Tests）
 
-Vitestを使用した単体テストをDockerコンテナ内で実行：
+Vitestを既存のfrontendコンテナでexec実行：
 
 ```bash
-# 単体テストを一度だけ実行
-docker compose --profile test run --rm test
+# 既にfrontendが起動している前提（未起動なら: docker compose up -d frontend）
 
-# または、直接コマンドを指定して実行
-docker compose run --rm app npm run test:run
+# 単体テストを一度だけ実行
+docker compose exec frontend npm run test:run
 
 # ウォッチモードでテスト実行
-docker compose run --rm app npm run test
+docker compose exec frontend npm run test
 ```
 
 #### E2Eテスト（End-to-End Tests）
@@ -277,10 +276,10 @@ docker compose run --rm backend rails db:migrate RAILS_ENV=test
 1. **フロントエンド開発中の継続的テスト**:
    ```bash
    # アプリケーション起動
-   docker compose up -d app
+   docker compose up -d frontend
    
-   # 単体テストを監視モードで実行
-   docker compose run --rm app npm run test
+   # 単体テストを監視モードで実行（既存コンテナでexec）
+   docker compose exec frontend npm run test
    ```
 
 2. **バックエンド開発中の継続的テスト**:
@@ -297,11 +296,11 @@ docker compose run --rm backend rails db:migrate RAILS_ENV=test
    # 全サービス起動
    docker compose up -d
    
-   # バックエンドテスト実行
-   docker compose run --rm backend rails test
+   # バックエンドテスト実行（既存コンテナでexec）
+   docker compose exec backend rails test
    
-   # フロントエンド単体テスト実行
-   docker compose run --rm app npm run test:run
+   # フロントエンド単体テスト実行（既存コンテナでexec）
+   docker compose exec frontend npm run test:run
    
    # E2Eテストをローカルで実行（別のターミナル）
    npm run test:e2e
@@ -313,11 +312,11 @@ docker compose run --rm backend rails db:migrate RAILS_ENV=test
    docker compose build --no-cache
    docker compose up -d
    
-   # バックエンドテスト
-   docker compose run --rm backend rails test
+   # バックエンドテスト（既存コンテナでexec）
+   docker compose exec backend rails test
    
-   # フロントエンドテスト
-   docker compose --profile test run --rm test
+   # フロントエンドテスト（既存コンテナでexec）
+   docker compose exec frontend npm run test:run
    
    # E2Eテスト（別途ローカル環境）
    npm run test:e2e
@@ -330,7 +329,7 @@ docker compose run --rm backend rails db:migrate RAILS_ENV=test
 
 1. アプリケーションが完全に起動していることを確認：
    ```bash
-   docker compose logs app
+   docker compose logs frontend
    curl http://localhost:5173
    ```
 
@@ -348,8 +347,8 @@ docker compose run --rm backend rails db:migrate RAILS_ENV=test
 
 依存関係を再インストール：
 ```bash
-docker compose build --no-cache app
-docker compose --profile test run --rm test
+docker compose build --no-cache frontend
+docker compose exec frontend npm run test:run
 ```
 
 ## Rails 開発コマンド

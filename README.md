@@ -31,7 +31,7 @@ todo-app/
 
 ```bash
 # フロントエンドのみ起動
-docker compose up -d app
+docker compose up -d frontend
 
 # フルスタック起動（フロントエンド + バックエンド + MySQL）
 docker compose up -d
