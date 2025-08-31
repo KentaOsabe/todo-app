@@ -3,8 +3,8 @@ export interface Category {
   name: string;
   color: string;
   description?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface CategoryFormData {

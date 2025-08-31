@@ -62,7 +62,8 @@ export const CategoriesPage = () => {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
-  const formatDate = (date: Date | string) => {
+  const formatDate = (date?: Date | string) => {
+    if (!date) return "-";
     const dateObj = date instanceof Date ? date : new Date(date);
     return new Intl.DateTimeFormat("ja-JP", {
       year: "numeric",
