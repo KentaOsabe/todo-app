@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Paper,
   Box,
@@ -13,63 +13,63 @@ import {
   Stack,
   Snackbar,
   Alert,
-} from '@mui/material'
-import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material'
-import { useCategoryManagement } from '../hooks/useCategoryManagement'
+} from "@mui/material";
+import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import { useCategoryManagement } from "../hooks/useCategoryManagement";
 
 export const CategoriesPage = () => {
-  const navigate = useNavigate()
-  const { categories, deleteCategory } = useCategoryManagement()
+  const navigate = useNavigate();
+  const { categories, deleteCategory } = useCategoryManagement();
   const [snackbar, setSnackbar] = useState<{
-    open: boolean
-    message: string
-    severity: 'success' | 'error'
+    open: boolean;
+    message: string;
+    severity: "success" | "error";
   }>({
     open: false,
-    message: '',
-    severity: 'success',
-  })
+    message: "",
+    severity: "success",
+  });
 
   const handleNewCategory = () => {
-    navigate('/categories/new')
-  }
+    navigate("/categories/new");
+  };
 
   const handleEditCategory = (id: string) => {
-    navigate(`/categories/${id}/edit`)
-  }
+    navigate(`/categories/${id}/edit`);
+  };
 
   const handleDeleteCategory = (id: string) => {
-    const confirmed = confirm('このカテゴリを削除しますか？')
-    if (!confirmed) return
+    const confirmed = confirm("このカテゴリを削除しますか？");
+    if (!confirmed) return;
 
-    const success = deleteCategory(id)
+    const success = deleteCategory(id);
     if (success) {
       setSnackbar({
         open: true,
-        message: 'カテゴリを削除しました',
-        severity: 'success',
-      })
+        message: "カテゴリを削除しました",
+        severity: "success",
+      });
     } else {
       setSnackbar({
         open: true,
-        message: '使用中のカテゴリは削除できません',
-        severity: 'error',
-      })
+        message: "使用中のカテゴリは削除できません",
+        severity: "error",
+      });
     }
-  }
+  };
 
   const handleCloseSnackbar = () => {
-    setSnackbar(prev => ({ ...prev, open: false }))
-  }
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  };
 
   const formatDate = (date: Date | string) => {
-    const dateObj = date instanceof Date ? date : new Date(date)
-    return new Intl.DateTimeFormat('ja-JP', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    }).format(dateObj)
-  }
+    const dateObj = date instanceof Date ? date : new Date(date);
+    return new Intl.DateTimeFormat("ja-JP", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    }).format(dateObj);
+  };
 
   return (
     <Box sx={{ flex: 1 }}>
@@ -103,7 +103,7 @@ export const CategoriesPage = () => {
           </Typography>
         ) : (
           <List>
-            {categories.map(category => (
+            {categories.map((category) => (
               <ListItem
                 key={category.id}
                 divider
@@ -136,11 +136,11 @@ export const CategoriesPage = () => {
                     size="small"
                     sx={{
                       backgroundColor: category.color,
-                      color: 'white',
+                      color: "white",
                       minWidth: 16,
                       height: 16,
-                      borderRadius: '50%',
-                      '& .MuiChip-label': {
+                      borderRadius: "50%",
+                      "& .MuiChip-label": {
                         padding: 0,
                       },
                     }}
@@ -153,7 +153,7 @@ export const CategoriesPage = () => {
                     <>
                       {category.description}
                       <br />
-                      作成日: {formatDate(category.createdAt)} | 更新日:{' '}
+                      作成日: {formatDate(category.createdAt)} | 更新日:{" "}
                       {formatDate(category.updatedAt)}
                     </>
                   }
@@ -168,12 +168,12 @@ export const CategoriesPage = () => {
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
         <Alert onClose={handleCloseSnackbar} severity={snackbar.severity}>
           {snackbar.message}
         </Alert>
       </Snackbar>
     </Box>
-  )
-}
+  );
+};

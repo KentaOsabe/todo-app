@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Conversation Guidelines
 
 - 常に日本語で会話する
+- コミットメッセージおよびPR（タイトル・説明）は日本語で記載する
 
 ## Development Methodology
 
@@ -79,9 +80,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run test:e2e:ui` - E2EテストをUI付きで実行
 
 #### Frontend Development
-- `docker compose up -d app` - Start containerized development server on localhost:5173
-- `docker compose build --no-cache app` - Rebuild with new dependencies
-- `docker compose logs -f app` - View application logs
+- `docker compose up -d frontend` - Start containerized development server on localhost:5173
+- `docker compose build --no-cache frontend` - Rebuild with new dependencies
+- `docker compose logs -f frontend` - View application logs
 
 #### Backend Development
 - `docker compose up -d backend mysql` - Start Rails API server on localhost:3001
@@ -96,24 +97,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Docker Testing
 
-#### Frontend Testing
-- `docker compose --profile test run --rm test` - Run Vitest unit tests once
-- `docker compose run --rm app npm run test` - Run unit tests in watch mode
-- `docker compose --profile e2e run --rm e2e` - Run Playwright E2E tests (requires app running)
-- `docker compose run --rm app npm run test:e2e:ui` - Run E2E tests with UI mode
+#### Frontend Testing（既存コンテナでexec実行）
+- `docker compose exec frontend npm run test:run` - Run Vitest unit tests once
+- `docker compose exec frontend npm run test` - Run unit tests in watch mode
+- E2E（ローカル実行推奨）: `npm run test:e2e` / `npm run test:e2e:ui`（要アプリ起動）
 
-#### Backend Testing
-- `docker compose run --rm backend rails test` - Run all Rails tests
-- `docker compose run --rm backend rails test --verbose` - Run Rails tests with detailed output
-- `docker compose run --rm backend rails test test/models/` - Run only model tests
-- `docker compose run --rm backend rails db:test:prepare` - Prepare test database
+#### Backend Testing（既存コンテナでexec実行）
+- `docker compose exec backend rails test` - Run all Rails tests
+- `docker compose exec backend rails test --verbose` - Run Rails tests with detailed output
+- `docker compose exec backend rails test test/models/` - Run only model tests
+- `docker compose exec backend rails db:test:prepare` - Prepare test database
 
-### Docker Code Quality
+### Docker Code Quality（既存コンテナでexec実行）
 
-- `docker compose run --rm app npm run lint` - Run ESLint to check code quality
-- `docker compose run --rm app npm run lint:fix` - Run ESLint with auto-fix
-- `docker compose run --rm app npm run format` - Format code with Prettier
-- `docker compose run --rm app npm run format:check` - Check code formatting
+- `docker compose exec frontend npm run lint` - Run ESLint to check code quality
+- `docker compose exec frontend npm run lint:fix` - Run ESLint with auto-fix
+- `docker compose exec frontend npm run format` - Format code with Prettier
+- `docker compose exec frontend npm run format:check` - Check code formatting
+
+### Commit / PR ガイドライン
+
+- 言語: コミットメッセージ、PRタイトル・説明は日本語で記載する
+- コミットメッセージの構成（推奨）:
+  - 1行目: 要約（例: "docs: Dockerコマンドをfrontendに統一"）
+  - 本文: 変更理由・詳細・影響範囲（箇条書き可）
+- PR説明の構成（推奨）:
+  - 概要 / 変更点 / 背景・目的 / 注意点（破壊的変更があれば明記）
 
 ### Local Development（非推奨）
 

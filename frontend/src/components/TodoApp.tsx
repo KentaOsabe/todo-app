@@ -1,18 +1,21 @@
-import { DndContext, closestCenter } from '@dnd-kit/core'
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { Box, List, Paper, Typography } from '@mui/material'
-import { useMemo } from 'react'
-import { useCategoryManagement } from '../hooks/useCategoryManagement'
-import { useFilters } from '../hooks/useFilters'
-import { useLocalStorage } from '../hooks/useLocalStorage'
-import { useTodoSorting } from '../hooks/useTodoSorting'
-import type { EditTodoData, Todo } from '../types/todo'
-import { FilterBar } from './FilterBar'
-import { SortableTodoItem } from './SortableTodoItem'
-import { TodoForm } from './TodoForm'
+import { DndContext, closestCenter } from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { Box, List, Paper, Typography } from "@mui/material";
+import { useMemo } from "react";
+import { useCategoryManagement } from "../hooks/useCategoryManagement";
+import { useFilters } from "../hooks/useFilters";
+import { useLocalStorage } from "../hooks/useLocalStorage";
+import { useTodoSorting } from "../hooks/useTodoSorting";
+import type { EditTodoData, Todo } from "../types/todo";
+import { FilterBar } from "./FilterBar";
+import { SortableTodoItem } from "./SortableTodoItem";
+import { TodoForm } from "./TodoForm";
 
 export const TodoApp = () => {
-  const [storedTodos, setStoredTodos] = useLocalStorage<Todo[]>('todos', [])
+  const [storedTodos, setStoredTodos] = useLocalStorage<Todo[]>("todos", []);
 
   // localStorageから読み込んだTodoを正規化（tagsフィールドとorderフィールドが欠けている可能性に対応）
   const todos = useMemo(
@@ -22,24 +25,24 @@ export const TodoApp = () => {
         tags: todo.tags || [],
         order: todo.order !== undefined ? todo.order : index,
       })),
-    [storedTodos]
-  )
+    [storedTodos],
+  );
 
   const setTodos = (value: Todo[] | ((prev: Todo[]) => Todo[])) => {
-    if (typeof value === 'function') {
-      setStoredTodos(prev => {
+    if (typeof value === "function") {
+      setStoredTodos((prev) => {
         const normalized = prev.map((todo, index) => ({
           ...todo,
           tags: todo.tags || [],
           order: todo.order !== undefined ? todo.order : index,
-        }))
-        return value(normalized)
-      })
+        }));
+        return value(normalized);
+      });
     } else {
-      setStoredTodos(value)
+      setStoredTodos(value);
     }
-  }
-  const { categories } = useCategoryManagement()
+  };
+  const { categories } = useCategoryManagement();
   const {
     filters,
     filteredTodos,
@@ -47,18 +50,21 @@ export const TodoApp = () => {
     resetFilters,
     availableTags,
     activeFilterCount,
-  } = useFilters(todos)
+  } = useFilters(todos);
 
   // ドラッグ&ドロップによる並び替え機能
-  const { sortedTodos, handleDragEnd } = useTodoSorting(filteredTodos, setTodos)
+  const { sortedTodos, handleDragEnd } = useTodoSorting(
+    filteredTodos,
+    setTodos,
+  );
 
   const handleAddTodo = (data: {
-    text: string
-    categoryId?: string
-    tags: string[]
+    text: string;
+    categoryId?: string;
+    tags: string[];
   }) => {
     const maxOrder =
-      todos.length > 0 ? Math.max(...todos.map(t => t.order || 0)) : -1
+      todos.length > 0 ? Math.max(...todos.map((t) => t.order || 0)) : -1;
     const newTodo: Todo = {
       id: Date.now().toString(),
       text: data.text,
@@ -67,26 +73,26 @@ export const TodoApp = () => {
       categoryId: data.categoryId,
       tags: data.tags,
       order: maxOrder + 1,
-    }
+    };
 
-    setTodos(prev => [...prev, newTodo])
-  }
+    setTodos((prev) => [...prev, newTodo]);
+  };
 
   const handleToggleTodo = (id: string) => {
-    setTodos(prev =>
-      prev.map(todo =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
-    )
-  }
+    setTodos((prev) =>
+      prev.map((todo) =>
+        todo.id === id ? { ...todo, completed: !todo.completed } : todo,
+      ),
+    );
+  };
 
   const handleDeleteTodo = (id: string) => {
-    setTodos(prev => prev.filter(todo => todo.id !== id))
-  }
+    setTodos((prev) => prev.filter((todo) => todo.id !== id));
+  };
 
   const handleEditTodo = (id: string, data: EditTodoData) => {
-    setTodos(prev =>
-      prev.map(todo =>
+    setTodos((prev) =>
+      prev.map((todo) =>
         todo.id === id
           ? {
               ...todo,
@@ -94,10 +100,10 @@ export const TodoApp = () => {
               categoryId: data.categoryId,
               tags: data.tags,
             }
-          : todo
-      )
-    )
-  }
+          : todo,
+      ),
+    );
+  };
 
   return (
     <Box sx={{ flex: 1 }}>
@@ -124,11 +130,11 @@ export const TodoApp = () => {
               onDragEnd={handleDragEnd}
             >
               <SortableContext
-                items={sortedTodos.map(todo => todo.id)}
+                items={sortedTodos.map((todo) => todo.id)}
                 strategy={verticalListSortingStrategy}
               >
                 <List>
-                  {sortedTodos.map(todo => (
+                  {sortedTodos.map((todo) => (
                     <SortableTodoItem
                       key={todo.id}
                       todo={todo}
@@ -167,5 +173,5 @@ export const TodoApp = () => {
         )}
       </Paper>
     </Box>
-  )
-}
+  );
+};

@@ -1,47 +1,47 @@
-import { memo } from 'react'
-import { AppBar, Tabs, Tab, styled, IconButton, Box } from '@mui/material'
+import { memo } from "react";
+import { AppBar, Tabs, Tab, styled, IconButton, Box } from "@mui/material";
 import {
   LightMode as LightModeIcon,
   DarkMode as DarkModeIcon,
-} from '@mui/icons-material'
-import { Link, useLocation } from 'react-router-dom'
+} from "@mui/icons-material";
+import { Link, useLocation } from "react-router-dom";
 
 const StyledTabs = styled(Tabs)(({ theme }) => ({
-  '& .MuiTab-root': {
+  "& .MuiTab-root": {
     color:
-      theme.palette.mode === 'dark'
+      theme.palette.mode === "dark"
         ? theme.palette.grey[300]
         : theme.palette.primary.contrastText,
   },
-  '& .MuiTab-root.Mui-selected': {
+  "& .MuiTab-root.Mui-selected": {
     color: theme.palette.common.white,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
-}))
+}));
 
 interface NavigationProps {
-  isDarkMode: boolean
-  toggleDarkMode: () => void
+  isDarkMode: boolean;
+  toggleDarkMode: () => void;
 }
 
 export const Navigation = memo(
   ({ isDarkMode, toggleDarkMode }: NavigationProps) => {
-    const location = useLocation()
+    const location = useLocation();
 
     // 現在のパスに基づいてタブの値を決定
     const getTabValue = () => {
-      if (location.pathname === '/') return 0
-      if (location.pathname.startsWith('/categories')) return 1
-      return false // どのタブにも該当しない場合
-    }
+      if (location.pathname === "/") return 0;
+      if (location.pathname.startsWith("/categories")) return 1;
+      return false; // どのタブにも該当しない場合
+    };
 
     return (
       <AppBar position="static">
         <Box
           sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
           }}
         >
           <StyledTabs value={getTabValue()} aria-label="navigation tabs">
@@ -57,7 +57,7 @@ export const Navigation = memo(
             onClick={toggleDarkMode}
             color="inherit"
             aria-label={
-              isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'
+              isDarkMode ? "Switch to light mode" : "Switch to dark mode"
             }
             sx={{ mr: 2 }}
           >
@@ -65,6 +65,6 @@ export const Navigation = memo(
           </IconButton>
         </Box>
       </AppBar>
-    )
-  }
-)
+    );
+  },
+);

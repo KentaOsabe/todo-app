@@ -1,4 +1,4 @@
-# React Todo App
+# Todo App
 
 React + TypeScript + Vite のフロントエンドと Ruby on Rails API のバックエンドで構築されたフルスタックTodoアプリケーションです。カテゴリ管理、フィルタリング、ダークモード対応などの機能を持ちます。
 
@@ -31,7 +31,7 @@ todo-app/
 
 ```bash
 # フロントエンドのみ起動
-docker compose up -d app
+docker compose up -d frontend
 
 # フルスタック起動（フロントエンド + バックエンド + MySQL）
 docker compose up -d
@@ -105,7 +105,7 @@ bin/rails server
 ### フロントエンドテスト
 ```bash
 # 単体テスト
-docker compose --profile test run --rm test
+docker compose exec frontend npm run test:run
 
 # E2Eテスト（アプリ起動後）
 npm run test:e2e
