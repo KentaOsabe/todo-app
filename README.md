@@ -105,7 +105,7 @@ bin/rails server
 ### フロントエンドテスト
 ```bash
 # 単体テスト
-docker compose --profile test run --rm test
+docker compose exec frontend npm run test:run
 
 # E2Eテスト（アプリ起動後）
 npm run test:e2e
