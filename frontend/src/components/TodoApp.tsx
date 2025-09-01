@@ -105,7 +105,7 @@ export const TodoApp = () => {
   } = useFilters(todos);
 
   // ドラッグ&ドロップによる並び替え機能（全件を対象に順序を管理）
-  const { sortedTodos, handleDragEnd } = useTodoSorting(todos, setTodos);
+  const { handleDragEnd } = useTodoSorting(todos, setTodos);
 
   // 表示用: フィルター済みの配列を order 順に並べ替え
   const displayTodos = useMemo(
