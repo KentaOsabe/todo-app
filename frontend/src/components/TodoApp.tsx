@@ -109,10 +109,7 @@ export const TodoApp = () => {
 
   // 表示用: フィルター済みの配列を order 順に並べ替え
   const displayTodos = useMemo(
-    () =>
-      [...filteredTodos].sort(
-        (a, b) => (a.order ?? 0) - (b.order ?? 0),
-      ),
+    () => [...filteredTodos].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
     [filteredTodos],
   );
 
