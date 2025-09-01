@@ -104,10 +104,16 @@ export const TodoApp = () => {
     activeFilterCount,
   } = useFilters(todos);
 
-  // ドラッグ&ドロップによる並び替え機能
-  const { sortedTodos, handleDragEnd } = useTodoSorting(
-    filteredTodos,
-    setTodos,
+  // ドラッグ&ドロップによる並び替え機能（全件を対象に順序を管理）
+  const { sortedTodos, handleDragEnd } = useTodoSorting(todos, setTodos);
+
+  // 表示用: フィルター済みの配列を order 順に並べ替え
+  const displayTodos = useMemo(
+    () =>
+      [...filteredTodos].sort(
+        (a, b) => (a.order ?? 0) - (b.order ?? 0),
+      ),
+    [filteredTodos],
   );
 
   const handleAddTodo = async (data: {
@@ -239,18 +245,18 @@ export const TodoApp = () => {
 
         <TodoForm onSubmit={handleAddTodo} categories={categories} />
 
-        {sortedTodos.length > 0 && (
+        {displayTodos.length > 0 && (
           <Paper elevation={2} sx={{ mt: 2 }}>
             <DndContext
               collisionDetection={closestCenter}
               onDragEnd={handleDragEnd}
             >
               <SortableContext
-                items={sortedTodos.map((todo) => todo.id)}
+                items={displayTodos.map((todo) => todo.id)}
                 strategy={verticalListSortingStrategy}
               >
                 <List>
-                  {sortedTodos.map((todo) => (
+                  {displayTodos.map((todo) => (
                     <SortableTodoItem
                       key={todo.id}
                       todo={todo}
@@ -277,7 +283,7 @@ export const TodoApp = () => {
           </Typography>
         )}
 
-        {todos.length > 0 && sortedTodos.length === 0 && !loading && (
+        {todos.length > 0 && displayTodos.length === 0 && !loading && (
           <Typography
             variant="body1"
             align="center"
