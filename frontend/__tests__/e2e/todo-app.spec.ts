@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { setupApiMock } from "./utils/mockApi";
 
 test.describe("Todo App E2E Tests", () => {
+  test.beforeEach(async ({ page }) => {
+    await setupApiMock(page);
+  });
   // 概要: ページが正しく読み込まれ、基本的なUI要素が表示されることを確認
   // 目的: アプリケーションの基本構造がブラウザで正しく動作することを保証
   test("should load the todo app with basic elements", async ({ page }) => {
@@ -39,16 +43,16 @@ test.describe("Todo App E2E Tests", () => {
     await input.fill("Test Todo");
     await addButton.click();
 
-    // Todo項目のcheckboxを特定（FilterBarのSwitchと区別）
-    const checkbox = page.getByRole("checkbox").last();
+    // Todo項目の行コンテナ内のcheckboxを明示的に取得（FilterBarのSwitchと区別）
+    const row = page.locator('li:has-text("Test Todo")').first();
+    const checkbox = row.locator('input[type="checkbox"]').first();
     await expect(checkbox).not.toBeChecked();
-
     await checkbox.click();
     await expect(checkbox).toBeChecked();
 
-    // 完了済みTodoのテキストに取り消し線が適用されることを確認
-    const todoText = page.getByText("Test Todo");
-    await expect(todoText).toHaveCSS("text-decoration", /line-through/);
+    // 完了済みTodoのテキストに取り消し線が適用されることを確認（該当行内のpを対象）
+    const textEl = row.locator("p");
+    await expect(textEl).toHaveCSS("text-decoration-line", "line-through");
   });
 
   // 概要: ユーザーがTodoを削除できることをE2Eで確認
@@ -122,7 +126,7 @@ test.describe("Todo App E2E Tests", () => {
     await page.goto("/");
 
     const input = page.getByPlaceholder("新しいタスクを入力");
-    const categorySelect = page.getByLabel("カテゴリ").first();
+    const categorySelect = page.getByTestId("todoform-category");
     const addButton = page.getByRole("button", { name: "追加" });
 
     await input.fill("仕事のタスク");
@@ -140,7 +144,7 @@ test.describe("Todo App E2E Tests", () => {
     await page.goto("/");
 
     const input = page.getByPlaceholder("新しいタスクを入力");
-    const tagInput = page.getByLabel("タグ").first();
+    const tagInput = page.getByTestId("todoform-tags");
     const addButton = page.getByRole("button", { name: "追加" });
 
     await input.fill("タグ付きタスク");
@@ -521,7 +525,7 @@ test.describe("Todo App E2E Tests", () => {
     await editButton.click();
 
     // カテゴリセレクトが編集フォームに表示されることを確認
-    const editCategorySelect = page.getByLabel("カテゴリ").last();
+    const editCategorySelect = page.getByTestId("todoedit-category");
     await expect(editCategorySelect).toBeVisible();
 
     // カテゴリを変更
@@ -529,7 +533,7 @@ test.describe("Todo App E2E Tests", () => {
     await page.getByText("プライベート").click();
 
     // テキストも変更
-    const editInput = page.locator("textarea").first();
+    const editInput = page.getByTestId("todoedit-text");
     await expect(editInput).toHaveValue("Category Todo");
     await editInput.fill("Updated Category Todo");
 
@@ -562,7 +566,7 @@ test.describe("Todo App E2E Tests", () => {
     await editButton.click();
 
     // タグ入力フィールドが編集フォームに表示されることを確認
-    const editTagInput = page.getByLabel("タグ").last(); // 編集フォーム内のタグ入力
+    const editTagInput = page.getByTestId("todoedit-tags"); // 編集フォーム内のタグ入力
     await expect(editTagInput).toBeVisible();
     await expect(editTagInput).toHaveValue("初期タグ1, 初期タグ2");
 
@@ -570,7 +574,7 @@ test.describe("Todo App E2E Tests", () => {
     await editTagInput.fill("更新タグ1, 更新タグ2, 新タグ");
 
     // テキストも変更
-    const editTextInput = page.locator("textarea").first(); // テキスト用の入力フィールド（1番目）
+    const editTextInput = page.getByTestId("todoedit-text"); // テキスト用の入力フィールド
     await expect(editTextInput).toHaveValue("Tagged Todo");
     await editTextInput.fill("Updated Tagged Todo");
 

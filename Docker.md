@@ -280,6 +280,18 @@ docker compose run --rm backend rails db:migrate RAILS_ENV=test
    
    # 単体テストを監視モードで実行（既存コンテナでexec）
    docker compose exec frontend npm run test
+
+   # ESLintをチェックモードで実行
+   docker compose exec frontend npm run lint
+
+   # ESLintを自動修正モードで実行
+   docker compose exec frontend npm run lint:fix
+
+   # Prettierによるコードフォーマット実行
+   docker compose exec frontend npm run format
+
+   # Prettierによるコードフォーマットチェック
+   docker compose exec frontend npm run format:check
    ```
 
 2. **バックエンド開発中の継続的テスト**:

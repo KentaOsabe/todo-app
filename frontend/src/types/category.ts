@@ -19,4 +19,8 @@ export interface UseCategoryManagementReturn {
   updateCategory: (id: string, data: CategoryFormData) => void;
   deleteCategory: (id: string) => boolean;
   isCategoryInUse: (id: string) => boolean;
+  // UI/UX改善: 追加情報（任意）
+  loading?: boolean;
+  error?: string | null;
+  offline?: boolean;
 }

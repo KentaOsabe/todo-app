@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { setupApiMock } from "./utils/mockApi";
 
 test.describe("Category Management E2E Tests", () => {
+  test.beforeEach(async ({ page }) => {
+    await setupApiMock(page);
+  });
   // 概要: ナビゲーション機能をテスト
   // 目的: Todo画面とカテゴリ管理画面間の遷移が正しく動作することを保証（Issue #5要件）
   test("should navigate between Todo and Category pages", async ({ page }) => {

@@ -79,6 +79,7 @@ export const TodoForm = ({ onSubmit, categories }: TodoFormProps) => {
             <InputLabel id="category-select-label">カテゴリ</InputLabel>
             <Select
               labelId="category-select-label"
+              data-testid="todoform-category"
               value={categoryId}
               label="カテゴリ"
               onChange={handleCategoryChange}
@@ -100,6 +101,7 @@ export const TodoForm = ({ onSubmit, categories }: TodoFormProps) => {
             variant="outlined"
             label="タグ"
             placeholder="タグをカンマ区切りで入力"
+            inputProps={{ "data-testid": "todoform-tags" }}
             value={tagsInput}
             onChange={(e) => setTagsInput(e.target.value)}
             helperText="例: 重要, 急ぎ, 今日中"

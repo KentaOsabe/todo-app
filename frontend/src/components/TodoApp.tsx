@@ -30,6 +30,10 @@ export const TodoApp = () => {
   const [rawTodos, setRawTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [offline, setOffline] = useState<boolean>(() => {
+    if (typeof navigator === "undefined") return false;
+    return navigator.onLine === false;
+  });
 
   // APIから取得したTodoを正規化（tags/orderが欠けている可能性に対応）
   const todos = useMemo(
@@ -72,6 +76,22 @@ export const TodoApp = () => {
     })();
     return () => {
       mounted = false;
+    };
+  }, []);
+
+  // オンライン/オフライン検知
+  useEffect(() => {
+    const handleOnline = () => setOffline(false);
+    const handleOffline = () => setOffline(true);
+    if (typeof window !== "undefined") {
+      window.addEventListener("online", handleOnline);
+      window.addEventListener("offline", handleOffline);
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("online", handleOnline);
+        window.removeEventListener("offline", handleOffline);
+      }
     };
   }, []);
   const { categories } = useCategoryManagement();
@@ -196,6 +216,14 @@ export const TodoApp = () => {
         <Typography variant="h3" component="h1" color="primary" sx={{ mb: 2 }}>
           Todo App
         </Typography>
+
+        {offline && (
+          <Box my={2}>
+            <Alert severity="warning">
+              オフラインです。操作は一時的に保存されない場合があります。
+            </Alert>
+          </Box>
+        )}
 
         {loading && (
           <Box display="flex" justifyContent="center" my={4}>

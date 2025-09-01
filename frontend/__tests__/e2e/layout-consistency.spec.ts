@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { setupApiMock } from "./utils/mockApi";
 
 test.describe("Layout Consistency E2E Tests", () => {
+  test.beforeEach(async ({ page }) => {
+    await setupApiMock(page);
+  });
   // 概要: ナビゲーション間でのレイアウト幅の一貫性をテスト
   // 目的: TodoページとCategoriesページ間でコンテンツ幅が一貫していることを保証
   test("should maintain consistent layout width across navigation", async ({

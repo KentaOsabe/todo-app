@@ -92,8 +92,8 @@ export const TodoItem = ({
             tabIndex={-1}
             disableRipple
             onClick={(e) => {
+              // ListItemButton へのバブリングを防止
               e.stopPropagation();
-              onToggle(todo.id);
             }}
             onChange={() => onToggle(todo.id)}
           />
