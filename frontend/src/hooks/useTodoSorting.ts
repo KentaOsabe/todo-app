@@ -17,7 +17,7 @@ export const useTodoSorting = (
   onReorder?: (reorderedTodos: Todo[]) => void,
 ): UseTodoSortingReturn => {
   const sortedTodos = useMemo(() => {
-    return [...todos].sort((a, b) => a.order - b.order);
+    return [...todos].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   }, [todos]);
 
   const handleDragEnd = useCallback(
@@ -79,7 +79,7 @@ export const useTodoSorting = (
           break;
         case "custom":
         default:
-          sorted = [...todos].sort((a, b) => a.order - b.order);
+          sorted = [...todos].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
           break;
       }
 

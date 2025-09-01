@@ -91,6 +91,11 @@ export const TodoItem = ({
             checked={todo.completed}
             tabIndex={-1}
             disableRipple
+            onClick={(e) => {
+              // ListItemButton へのバブリングを防止
+              e.stopPropagation();
+            }}
+            onChange={() => onToggle(todo.id)}
           />
         </ListItemIcon>
         <ListItemText

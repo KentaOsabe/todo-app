@@ -1,10 +1,15 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type {
   Category,
   CategoryFormData,
   UseCategoryManagementReturn,
 } from "../types/category";
-import { useLocalStorage } from "./useLocalStorage";
+import {
+  listCategories as apiListCategories,
+  createCategory as apiCreateCategory,
+  updateCategory as apiUpdateCategory,
+  deleteCategory as apiDeleteCategory,
+} from "../api/categories";
 
 const DEFAULT_CATEGORIES: Category[] = [
   {
@@ -34,54 +39,132 @@ const DEFAULT_CATEGORIES: Category[] = [
 ];
 
 export const useCategoryManagement = (): UseCategoryManagementReturn => {
-  const [categories, setCategories] = useLocalStorage<Category[]>(
-    "categories",
-    DEFAULT_CATEGORIES,
-  );
+  // 初期表示は従来通りのデフォルトカテゴリを使い、マウント後にAPI結果で上書き
+  const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
+  // ユーザーが作成/更新/削除などの操作を行ったかどうか
+  const interactedRef = useRef(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [offline, setOffline] = useState<boolean>(() => {
+    if (typeof navigator === "undefined") return false;
+    return navigator.onLine === false;
+  });
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const fetched = await apiListCategories();
+        if (mounted && !interactedRef.current) setCategories(fetched);
+      } catch {
+        if (mounted) {
+          setError("カテゴリの取得に失敗しました");
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    // online/offline イベント監視
+    const handleOnline = () => setOffline(false);
+    const handleOffline = () => setOffline(true);
+    if (typeof window !== "undefined") {
+      window.addEventListener("online", handleOnline);
+      window.addEventListener("offline", handleOffline);
+    }
+    return () => {
+      mounted = false;
+      if (typeof window !== "undefined") {
+        window.removeEventListener("online", handleOnline);
+        window.removeEventListener("offline", handleOffline);
+      }
+    };
+  }, []);
 
   // カテゴリの使用状況チェック機能
   // 現在はサンプルデータで動作確認済み
   const createCategory = useCallback(
     (data: CategoryFormData) => {
+      interactedRef.current = true;
       // 同じ名前のカテゴリが既に存在するかチェック
       const exists = categories.some((category) => category.name === data.name);
-      if (exists) {
-        return;
-      }
+      if (exists) return;
 
-      const now = new Date();
-      const newCategory: Category = {
-        id: `cat-${Date.now()}`,
+      // 楽観的に即時追加
+      const tempId = `temp-cat-${Date.now()}`;
+      const optimistic: Category = {
+        id: tempId,
         name: data.name,
         color: data.color,
         description: data.description,
-        createdAt: now,
-        updatedAt: now,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
+      setCategories((prev) => [...prev, optimistic]);
 
-      setCategories((prev) => [...prev, newCategory]);
+      // APIへ作成要求（成功で置換、失敗でロールバック）
+      (async () => {
+        try {
+          const created = await apiCreateCategory({ name: data.name });
+          setCategories((prev) =>
+            prev.map((c) =>
+              c.id === tempId
+                ? {
+                    ...created,
+                    color: data.color,
+                    description: data.description,
+                  }
+                : c,
+            ),
+          );
+        } catch {
+          // 失敗時はロールバック
+          setCategories((prev) => prev.filter((c) => c.id !== tempId));
+        }
+      })();
     },
-    [categories, setCategories],
+    [categories],
   );
 
-  const updateCategory = useCallback(
-    (id: string, data: CategoryFormData) => {
-      setCategories((prev) =>
-        prev.map((category) =>
-          category.id === id
-            ? {
-                ...category,
-                name: data.name,
-                color: data.color,
-                description: data.description,
-                updatedAt: new Date(),
-              }
-            : category,
-        ),
-      );
-    },
-    [setCategories],
-  );
+  const updateCategory = useCallback((id: string, data: CategoryFormData) => {
+    interactedRef.current = true;
+    // 楽観的更新（今後のエラーUIで巻き戻し対応予定）
+    setCategories((prev) =>
+      prev.map((category) =>
+        category.id === id
+          ? {
+              ...category,
+              name: data.name,
+              color: data.color,
+              description: data.description,
+              updatedAt: new Date(),
+            }
+          : category,
+      ),
+    );
+
+    (async () => {
+      try {
+        const updated = await apiUpdateCategory(id, { name: data.name });
+        if (updated) {
+          setCategories((prev) =>
+            prev.map((c) =>
+              c.id === id
+                ? {
+                    ...c,
+                    name: updated.name,
+                    // APIからはcolor/descriptionは来ないため、現在の値を維持
+                  }
+                : c,
+            ),
+          );
+        }
+      } catch {
+        // 失敗時の巻き戻しは今後のUI改善で対応
+      }
+    })();
+  }, []);
 
   const isCategoryInUse = useCallback((id: string): boolean => {
     // カテゴリ使用状況の確認（サンプルデータで動作）
@@ -93,21 +176,24 @@ export const useCategoryManagement = (): UseCategoryManagementReturn => {
 
   const deleteCategory = useCallback(
     (id: string): boolean => {
-      // カテゴリが存在するかチェック
+      interactedRef.current = true;
       const categoryExists = categories.some((category) => category.id === id);
-      if (!categoryExists) {
-        return false;
-      }
+      if (!categoryExists) return false;
 
-      // 使用中のカテゴリは削除できない
-      if (isCategoryInUse(id)) {
-        return false;
-      }
+      if (isCategoryInUse(id)) return false;
 
+      // 楽観的に削除、API失敗時の復元は今後の改善で対応
       setCategories((prev) => prev.filter((category) => category.id !== id));
+      (async () => {
+        try {
+          await apiDeleteCategory(id);
+        } catch {
+          // 失敗時の巻き戻しは今後の改善で対応
+        }
+      })();
       return true;
     },
-    [categories, isCategoryInUse, setCategories],
+    [categories, isCategoryInUse],
   );
 
   return {
@@ -116,5 +202,8 @@ export const useCategoryManagement = (): UseCategoryManagementReturn => {
     updateCategory,
     deleteCategory,
     isCategoryInUse,
+    loading,
+    error,
+    offline,
   };
 };

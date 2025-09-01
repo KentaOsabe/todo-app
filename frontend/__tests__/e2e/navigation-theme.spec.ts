@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { setupApiMock } from "./utils/mockApi";
 
 test.describe("Navigation Theme E2E Tests", () => {
+  test.beforeEach(async ({ page }) => {
+    await setupApiMock(page);
+  });
   // 概要: ライトモード時のナビゲーションタブ表示をテスト
   // 目的: 選択されたタブが白色で表示され、非選択タブも視認可能であることを保証
   test("should display navigation tabs with proper contrast in light mode", async ({

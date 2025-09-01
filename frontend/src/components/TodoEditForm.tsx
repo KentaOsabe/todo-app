@@ -75,6 +75,7 @@ export const TodoEditForm = ({
         {/* テキスト入力 */}
         <TextField
           inputRef={textInputRef}
+          inputProps={{ "data-testid": "todoedit-text" }}
           fullWidth
           variant="outlined"
           size="small"
@@ -93,6 +94,7 @@ export const TodoEditForm = ({
             <InputLabel id="edit-category-select-label">カテゴリ</InputLabel>
             <Select
               labelId="edit-category-select-label"
+              data-testid="todoedit-category"
               value={editData.categoryId || ""}
               label="カテゴリ"
               onChange={handleCategoryChange}
@@ -114,6 +116,7 @@ export const TodoEditForm = ({
             variant="outlined"
             label="タグ"
             placeholder="タグをカンマ区切りで入力"
+            inputProps={{ "data-testid": "todoedit-tags" }}
             value={tagsInputValue}
             onChange={handleTagsChange}
             sx={{ flex: 1 }}

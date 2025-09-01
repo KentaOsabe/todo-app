@@ -3,8 +3,8 @@ export interface Category {
   name: string;
   color: string;
   description?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface CategoryFormData {
@@ -19,4 +19,8 @@ export interface UseCategoryManagementReturn {
   updateCategory: (id: string, data: CategoryFormData) => void;
   deleteCategory: (id: string) => boolean;
   isCategoryInUse: (id: string) => boolean;
+  // UI/UX改善: 追加情報（任意）
+  loading?: boolean;
+  error?: string | null;
+  offline?: boolean;
 }

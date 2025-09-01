@@ -1,11 +1,50 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { TodoApp } from "../../src/components/TodoApp";
+import type { Todo } from "../../src/types/todo";
+
+vi.mock("../../src/api/todos", () => ({
+  listTodos: vi.fn(),
+  createTodo: vi.fn(),
+  updateTodo: vi.fn(),
+  deleteTodo: vi.fn(),
+}));
+
+import {
+  listTodos,
+  createTodo,
+  updateTodo,
+  deleteTodo,
+} from "../../src/api/todos";
+
+const makeTodo = (overrides: Partial<Todo> = {}): Todo => ({
+  id: String(Date.now()),
+  text: "Mock",
+  completed: false,
+  createdAt: new Date(),
+  categoryId: undefined,
+  tags: [],
+  order: 0,
+  ...overrides,
+});
 
 describe("TodoApp", () => {
   beforeEach(() => {
-    // 各テスト前にlocalStorageをクリア
-    localStorage.clear();
+    // APIモックの初期化
+    vi.resetAllMocks();
+    // フィルターなどの永続状態が他テストに干渉しないようクリア
+    window.localStorage.clear();
+    (listTodos as unknown as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (createTodo as unknown as ReturnType<typeof vi.fn>).mockImplementation(
+      async ({ text, categoryId }: { text: string; categoryId?: string }) =>
+        makeTodo({ id: String(Date.now()), text, categoryId }),
+    );
+    (updateTodo as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(
+      makeTodo(),
+    );
+    (deleteTodo as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(
+      undefined,
+    );
   });
   // 概要: アプリケーションのタイトルが正しく表示されることを確認
   // 目的: UIの基本構造が正しくレンダリングされることを保証

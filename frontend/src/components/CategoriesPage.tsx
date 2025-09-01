@@ -13,13 +13,15 @@ import {
   Stack,
   Snackbar,
   Alert,
+  CircularProgress,
 } from "@mui/material";
 import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import { useCategoryManagement } from "../hooks/useCategoryManagement";
 
 export const CategoriesPage = () => {
   const navigate = useNavigate();
-  const { categories, deleteCategory } = useCategoryManagement();
+  const { categories, deleteCategory, loading, error, offline } =
+    useCategoryManagement();
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -62,7 +64,8 @@ export const CategoriesPage = () => {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
-  const formatDate = (date: Date | string) => {
+  const formatDate = (date?: Date | string) => {
+    if (!date) return "-";
     const dateObj = date instanceof Date ? date : new Date(date);
     return new Intl.DateTimeFormat("ja-JP", {
       year: "numeric",
@@ -92,7 +95,29 @@ export const CategoriesPage = () => {
           </Button>
         </Box>
 
-        {categories.length === 0 ? (
+        {offline && (
+          <Box my={2}>
+            <Alert severity="warning" data-testid="categories-offline">
+              オフラインです。操作は一時的に保存されない場合があります。
+            </Alert>
+          </Box>
+        )}
+
+        {error && (
+          <Box my={2}>
+            <Alert severity="error" data-testid="categories-error">
+              {error}
+            </Alert>
+          </Box>
+        )}
+
+        {loading && (
+          <Box display="flex" justifyContent="center" my={4}>
+            <CircularProgress data-testid="categories-loading" />
+          </Box>
+        )}
+
+        {!loading && categories.length === 0 ? (
           <Typography
             variant="body1"
             color="text.secondary"
@@ -101,7 +126,7 @@ export const CategoriesPage = () => {
           >
             カテゴリがありません
           </Typography>
-        ) : (
+        ) : !loading ? (
           <List>
             {categories.map((category) => (
               <ListItem
@@ -161,7 +186,7 @@ export const CategoriesPage = () => {
               </ListItem>
             ))}
           </List>
-        )}
+        ) : null}
       </Paper>
 
       <Snackbar

@@ -194,6 +194,7 @@ export const FilterBar = ({
           <FormControlLabel
             control={
               <Switch
+                role="switch"
                 checked={filters.tagCondition === "all"}
                 onChange={handleTagConditionChange}
                 size="small"
