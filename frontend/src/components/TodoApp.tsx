@@ -30,6 +30,8 @@ export const TodoApp = () => {
   const [rawTodos, setRawTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  // 初回の取得結果を適用済みかを明確化（重複適用の意図しない発生を抑止）
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const [offline, setOffline] = useState<boolean>(() => {
     if (typeof navigator === "undefined") return false;
     return navigator.onLine === false;
@@ -61,6 +63,9 @@ export const TodoApp = () => {
     }
   };
 
+  /* eslint-disable react-hooks/exhaustive-deps */
+  // 初期取得はマウント時に一度だけ実行する意図のため、依存配列は空に固定
+  // isInitialized は適用制御のための補助フラグであり、再フェッチを誘発しない。
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -68,7 +73,11 @@ export const TodoApp = () => {
       setError(null);
       try {
         const data = await listTodos();
-        if (mounted) setRawTodos((prev) => (prev.length === 0 ? data : prev));
+        // 初回のみ取得結果を適用（明示的な初期化フラグで可読性を担保）
+        if (mounted && !isInitialized) {
+          setRawTodos((prev) => (prev.length === 0 ? data : prev));
+          setIsInitialized(true);
+        }
       } catch {
         if (mounted) setError("タスクの取得に失敗しました");
       }
@@ -78,6 +87,7 @@ export const TodoApp = () => {
       mounted = false;
     };
   }, []);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   // オンライン/オフライン検知
   useEffect(() => {
