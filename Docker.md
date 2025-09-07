@@ -220,6 +220,9 @@ docker compose exec frontend npm run test:run
 
 # ウォッチモードでテスト実行
 docker compose exec frontend npm run test
+
+# 特定のテストファイルだけを実行（例）
+docker compose exec frontend npm run test:run -- __tests__/components/TodoApp.test.tsx
 ```
 
 #### E2Eテスト（End-to-End Tests）

@@ -242,6 +242,16 @@ export const TodoApp = () => {
 
         <TodoForm onSubmit={handleAddTodo} categories={categories} />
 
+        {/* FilterBar を一覧の上（フォーム直下）に移動 */}
+        <FilterBar
+          filters={filters}
+          onFiltersChange={updateFilters}
+          onReset={resetFilters}
+          categories={categories}
+          availableTags={availableTags}
+          activeFilterCount={activeFilterCount}
+        />
+
         {displayTodos.length > 0 && (
           <Paper elevation={2} sx={{ mt: 2 }}>
             <DndContext
@@ -290,15 +300,6 @@ export const TodoApp = () => {
             No todos match the current filters.
           </Typography>
         )}
-
-        <FilterBar
-          filters={filters}
-          onFiltersChange={updateFilters}
-          onReset={resetFilters}
-          categories={categories}
-          availableTags={availableTags}
-          activeFilterCount={activeFilterCount}
-        />
       </Paper>
     </Box>
   );
