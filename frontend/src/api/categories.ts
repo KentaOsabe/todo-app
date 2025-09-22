@@ -23,30 +23,49 @@ function toCategory(entity: ApiCategory): Category {
   };
 }
 
-export async function listCategories(): Promise<Category[]> {
-  const res = await api.get<IndexResponse>("/categories");
+export async function listCategories(options?: {
+  signal?: AbortSignal;
+}): Promise<Category[]> {
+  const res = await api.get<IndexResponse>("/categories", {
+    signal: options?.signal,
+  });
   return res.data.map(toCategory);
 }
 
-export async function createCategory(payload: {
-  name: string;
-}): Promise<Category> {
-  const res = await api.post<EntityResponse>("/categories", {
-    name: payload.name,
-  });
+export async function createCategory(
+  payload: {
+    name: string;
+  },
+  options?: { signal?: AbortSignal },
+): Promise<Category> {
+  const res = await api.post<EntityResponse>(
+    "/categories",
+    {
+      name: payload.name,
+    },
+    { signal: options?.signal },
+  );
   return toCategory(res.data);
 }
 
 export async function updateCategory(
   id: string,
   payload: { name: string },
+  options?: { signal?: AbortSignal },
 ): Promise<Category> {
-  const res = await api.patch<EntityResponse>(`/categories/${id}`, {
-    name: payload.name,
-  });
+  const res = await api.patch<EntityResponse>(
+    `/categories/${id}`,
+    {
+      name: payload.name,
+    },
+    { signal: options?.signal },
+  );
   return toCategory(res.data);
 }
 
-export async function deleteCategory(id: string): Promise<void> {
-  await api.delete(`/categories/${id}`);
+export async function deleteCategory(
+  id: string,
+  options?: { signal?: AbortSignal },
+): Promise<void> {
+  await api.delete(`/categories/${id}`, { signal: options?.signal });
 }

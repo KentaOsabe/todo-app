@@ -10,6 +10,7 @@ import {
   updateCategory as apiUpdateCategory,
   deleteCategory as apiDeleteCategory,
 } from "../api/categories";
+import { isAbortError } from "../utils/error";
 
 const DEFAULT_CATEGORIES: Category[] = [
   {
@@ -52,32 +53,49 @@ export const useCategoryManagement = (): UseCategoryManagementReturn => {
 
   useEffect(() => {
     let mounted = true;
+    const controller = new AbortController();
+    const resolveOffline = () =>
+      typeof navigator !== "undefined" ? navigator.onLine === false : false;
+    const updateOffline = (forced?: boolean) => {
+      if (!mounted) return;
+      setOffline(forced ?? resolveOffline());
+    };
     (async () => {
       setLoading(true);
       setError(null);
       try {
-        const fetched = await apiListCategories();
+        const fetched = await apiListCategories({ signal: controller.signal });
         if (mounted && !interactedRef.current) setCategories(fetched);
-      } catch {
-        if (mounted) {
+      } catch (e: unknown) {
+        // キャンセルは非エラー扱い
+        if (!isAbortError(e) && mounted) {
           setError("カテゴリの取得に失敗しました");
+          updateOffline();
         }
       } finally {
         if (mounted) setLoading(false);
       }
     })();
-    // online/offline イベント監視
-    const handleOnline = () => setOffline(false);
-    const handleOffline = () => setOffline(true);
+    // online/offline イベント監視（navigator状態と同期）
+    const handleOnline = () => updateOffline(false);
+    const handleOffline = () => updateOffline(true);
+    let syncTimer: number | undefined;
     if (typeof window !== "undefined") {
       window.addEventListener("online", handleOnline);
       window.addEventListener("offline", handleOffline);
+      syncTimer = window.setTimeout(() => updateOffline(), 0);
     }
+    // 直前に発火したイベントを取りこぼさないよう、マウント時に同期
+    updateOffline();
     return () => {
       mounted = false;
+      controller.abort();
       if (typeof window !== "undefined") {
         window.removeEventListener("online", handleOnline);
         window.removeEventListener("offline", handleOffline);
+        if (syncTimer !== undefined) {
+          window.clearTimeout(syncTimer);
+        }
       }
     };
   }, []);

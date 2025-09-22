@@ -29,37 +29,52 @@ function toTodo(entity: ApiTodo): Todo {
   };
 }
 
-export async function listTodos(): Promise<Todo[]> {
-  const res = await api.get<IndexResponse>("/todos");
+export async function listTodos(options?: {
+  signal?: AbortSignal;
+}): Promise<Todo[]> {
+  const res = await api.get<IndexResponse>("/todos", {
+    signal: options?.signal,
+  });
   return res.data.map(toTodo);
 }
 
-export async function createTodo(payload: {
-  text: string;
-  categoryId?: string;
-  completed?: boolean;
-}): Promise<Todo> {
+export async function createTodo(
+  payload: {
+    text: string;
+    categoryId?: string;
+    completed?: boolean;
+  },
+  options?: { signal?: AbortSignal },
+): Promise<Todo> {
   const body: Record<string, unknown> = { text: payload.text };
   if (payload.categoryId !== undefined)
     body["category_id"] = payload.categoryId;
   if (payload.completed !== undefined) body["completed"] = payload.completed;
-  const res = await api.post<EntityResponse>("/todos", body);
+  const res = await api.post<EntityResponse>("/todos", body, {
+    signal: options?.signal,
+  });
   return toTodo(res.data);
 }
 
 export async function updateTodo(
   id: string,
   payload: { text?: string; categoryId?: string; completed?: boolean },
+  options?: { signal?: AbortSignal },
 ): Promise<Todo> {
   const body: Record<string, unknown> = {};
   if (payload.text !== undefined) body["text"] = payload.text;
   if (payload.categoryId !== undefined)
     body["category_id"] = payload.categoryId;
   if (payload.completed !== undefined) body["completed"] = payload.completed;
-  const res = await api.patch<EntityResponse>(`/todos/${id}`, body);
+  const res = await api.patch<EntityResponse>(`/todos/${id}`, body, {
+    signal: options?.signal,
+  });
   return toTodo(res.data);
 }
 
-export async function deleteTodo(id: string): Promise<void> {
-  await api.delete(`/todos/${id}`);
+export async function deleteTodo(
+  id: string,
+  options?: { signal?: AbortSignal },
+): Promise<void> {
+  await api.delete(`/todos/${id}`, { signal: options?.signal });
 }

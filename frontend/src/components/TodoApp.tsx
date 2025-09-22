@@ -25,6 +25,7 @@ import {
   updateTodo as apiUpdateTodo,
   deleteTodo as apiDeleteTodo,
 } from "../api/todos";
+import { isAbortError } from "../utils/error";
 
 export const TodoApp = () => {
   const [rawTodos, setRawTodos] = useState<Todo[]>([]);
@@ -68,23 +69,26 @@ export const TodoApp = () => {
   // isInitialized は適用制御のための補助フラグであり、再フェッチを誘発しない。
   useEffect(() => {
     let mounted = true;
+    const controller = new AbortController();
     (async () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await listTodos();
+        const data = await listTodos({ signal: controller.signal });
         // 初回のみ取得結果を適用（明示的な初期化フラグで可読性を担保）
         if (mounted && !isInitialized) {
           setRawTodos((prev) => (prev.length === 0 ? data : prev));
           setIsInitialized(true);
         }
-      } catch {
-        if (mounted) setError("タスクの取得に失敗しました");
+      } catch (e: unknown) {
+        // キャンセルは非エラー扱い
+        if (mounted && !isAbortError(e)) setError("タスクの取得に失敗しました");
       }
       if (mounted) setLoading(false);
     })();
     return () => {
       mounted = false;
+      controller.abort();
     };
   }, []);
   /* eslint-enable react-hooks/exhaustive-deps */
