@@ -10,6 +10,7 @@ import {
   updateCategory as apiUpdateCategory,
   deleteCategory as apiDeleteCategory,
 } from "../api/categories";
+import { isAbortError } from "../utils/error";
 
 const DEFAULT_CATEGORIES: Category[] = [
   {
@@ -67,17 +68,7 @@ export const useCategoryManagement = (): UseCategoryManagementReturn => {
         if (mounted && !interactedRef.current) setCategories(fetched);
       } catch (e: unknown) {
         // キャンセルは非エラー扱い
-        const isAbort =
-          (typeof DOMException !== "undefined" &&
-            e instanceof DOMException &&
-            e.name === "AbortError") ||
-          (typeof e === "object" &&
-            e !== null &&
-            (e as { name?: unknown }).name === "AbortError") ||
-          (typeof e === "object" &&
-            e !== null &&
-            (e as { type?: unknown }).type === "abort");
-        if (!isAbort && mounted) {
+        if (!isAbortError(e) && mounted) {
           setError("カテゴリの取得に失敗しました");
           updateOffline();
         }

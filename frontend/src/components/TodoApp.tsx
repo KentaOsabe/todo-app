@@ -25,6 +25,7 @@ import {
   updateTodo as apiUpdateTodo,
   deleteTodo as apiDeleteTodo,
 } from "../api/todos";
+import { isAbortError } from "../utils/error";
 
 export const TodoApp = () => {
   const [rawTodos, setRawTodos] = useState<Todo[]>([]);
@@ -81,17 +82,7 @@ export const TodoApp = () => {
         }
       } catch (e: unknown) {
         // キャンセルは非エラー扱い
-        const isAbort =
-          (typeof DOMException !== "undefined" &&
-            e instanceof DOMException &&
-            e.name === "AbortError") ||
-          (typeof e === "object" &&
-            e !== null &&
-            (e as { name?: unknown }).name === "AbortError") ||
-          (typeof e === "object" &&
-            e !== null &&
-            (e as { type?: unknown }).type === "abort");
-        if (mounted && !isAbort) setError("タスクの取得に失敗しました");
+        if (mounted && !isAbortError(e)) setError("タスクの取得に失敗しました");
       }
       if (mounted) setLoading(false);
     })();

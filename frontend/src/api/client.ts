@@ -1,3 +1,5 @@
+import { isAbortError } from "../utils/error";
+
 export type ApiError = {
   status?: number;
   message: string;
@@ -39,17 +41,6 @@ function isApiError(value: unknown): value is ApiError {
 }
 
 export function createApiClient(baseURL: string) {
-  const isAbortErrorLike = (e: unknown): boolean => {
-    return (
-      (typeof DOMException !== "undefined" &&
-        e instanceof DOMException &&
-        e.name === "AbortError") ||
-      (typeof e === "object" &&
-        e !== null &&
-        "name" in e &&
-        (e as { name?: unknown }).name === "AbortError")
-    );
-  };
   return {
     async get<T = unknown>(
       path: string,
@@ -76,7 +67,7 @@ export function createApiClient(baseURL: string) {
         return (await res.json()) as T;
       } catch (e: unknown) {
         // AbortErrorはキャンセル扱い
-        if (isAbortErrorLike(e)) {
+        if (isAbortError(e)) {
           const err: ApiError = { type: "abort", message: "Request aborted" };
           throw err;
         }
@@ -119,7 +110,7 @@ export function createApiClient(baseURL: string) {
         }
         return (await res.json()) as T;
       } catch (e: unknown) {
-        if (isAbortErrorLike(e)) {
+        if (isAbortError(e)) {
           const err: ApiError = { type: "abort", message: "Request aborted" };
           throw err;
         }
@@ -162,7 +153,7 @@ export function createApiClient(baseURL: string) {
         }
         return (await res.json()) as T;
       } catch (e: unknown) {
-        if (isAbortErrorLike(e)) {
+        if (isAbortError(e)) {
           const err: ApiError = { type: "abort", message: "Request aborted" };
           throw err;
         }
@@ -200,7 +191,7 @@ export function createApiClient(baseURL: string) {
         }
         return;
       } catch (e: unknown) {
-        if (isAbortErrorLike(e)) {
+        if (isAbortError(e)) {
           const err: ApiError = { type: "abort", message: "Request aborted" };
           throw err;
         }
