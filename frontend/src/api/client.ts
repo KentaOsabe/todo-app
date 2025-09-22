@@ -1,12 +1,13 @@
 export type ApiError = {
   status?: number;
   message: string;
-  type?: "network" | "http" | "unknown";
+  type?: "network" | "http" | "unknown" | "abort";
   details?: unknown;
 };
 
 type RequestOptions = {
   headers?: Record<string, string>;
+  signal?: AbortSignal;
 };
 
 const defaultHeaders = {
@@ -38,6 +39,17 @@ function isApiError(value: unknown): value is ApiError {
 }
 
 export function createApiClient(baseURL: string) {
+  const isAbortErrorLike = (e: unknown): boolean => {
+    return (
+      (typeof DOMException !== "undefined" &&
+        e instanceof DOMException &&
+        e.name === "AbortError") ||
+      (typeof e === "object" &&
+        e !== null &&
+        "name" in e &&
+        (e as { name?: unknown }).name === "AbortError")
+    );
+  };
   return {
     async get<T = unknown>(
       path: string,
@@ -47,6 +59,7 @@ export function createApiClient(baseURL: string) {
         const res = await fetch(buildUrl(baseURL, path), {
           method: "GET",
           headers: { ...defaultHeaders, ...options.headers },
+          signal: options.signal,
         });
         if (!res.ok) {
           const body = await parseJsonSafe(res);
@@ -62,6 +75,11 @@ export function createApiClient(baseURL: string) {
         }
         return (await res.json()) as T;
       } catch (e: unknown) {
+        // AbortErrorはキャンセル扱い
+        if (isAbortErrorLike(e)) {
+          const err: ApiError = { type: "abort", message: "Request aborted" };
+          throw err;
+        }
         if (isApiError(e)) throw e;
         if (e instanceof TypeError) {
           const err: ApiError = { type: "network", message: e.message };
@@ -85,6 +103,7 @@ export function createApiClient(baseURL: string) {
           method: "POST",
           headers: { ...defaultHeaders, ...options.headers },
           body: body !== undefined ? JSON.stringify(body) : undefined,
+          signal: options.signal,
         });
         if (!res.ok) {
           const data = await parseJsonSafe(res);
@@ -100,6 +119,10 @@ export function createApiClient(baseURL: string) {
         }
         return (await res.json()) as T;
       } catch (e: unknown) {
+        if (isAbortErrorLike(e)) {
+          const err: ApiError = { type: "abort", message: "Request aborted" };
+          throw err;
+        }
         if (isApiError(e)) throw e;
         if (e instanceof TypeError) {
           const err: ApiError = { type: "network", message: e.message };
@@ -123,6 +146,7 @@ export function createApiClient(baseURL: string) {
           method: "PATCH",
           headers: { ...defaultHeaders, ...options.headers },
           body: body !== undefined ? JSON.stringify(body) : undefined,
+          signal: options.signal,
         });
         if (!res.ok) {
           const data = await parseJsonSafe(res);
@@ -138,6 +162,10 @@ export function createApiClient(baseURL: string) {
         }
         return (await res.json()) as T;
       } catch (e: unknown) {
+        if (isAbortErrorLike(e)) {
+          const err: ApiError = { type: "abort", message: "Request aborted" };
+          throw err;
+        }
         if (isApiError(e)) throw e;
         if (e instanceof TypeError) {
           const err: ApiError = { type: "network", message: e.message };
@@ -156,6 +184,7 @@ export function createApiClient(baseURL: string) {
         const res = await fetch(buildUrl(baseURL, path), {
           method: "DELETE",
           headers: { ...defaultHeaders, ...options.headers },
+          signal: options.signal,
         });
         if (!res.ok) {
           const data = await parseJsonSafe(res);
@@ -171,6 +200,10 @@ export function createApiClient(baseURL: string) {
         }
         return;
       } catch (e: unknown) {
+        if (isAbortErrorLike(e)) {
+          const err: ApiError = { type: "abort", message: "Request aborted" };
+          throw err;
+        }
         if (isApiError(e)) throw e;
         if (e instanceof TypeError) {
           const err: ApiError = { type: "network", message: e.message };

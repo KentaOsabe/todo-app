@@ -223,4 +223,36 @@ describe("useCategoryManagement", () => {
     expect(deleteResult).toBe(false);
     expect(result.current.categories.length).toBeGreaterThan(0);
   });
+
+  // 概要: オフラインイベントがリスナー登録前に発火した場合でも検知できることをテスト
+  // 目的: イベント取りこぼし時でもnavigator.onLineの状態から警告表示が行われることを保証
+  it("オフラインイベントを取りこぼしてもnavigator状態からオフライン判定できる", async () => {
+    const originalDescriptor = Object.getOwnPropertyDescriptor(
+      window.navigator,
+      "onLine",
+    );
+
+    const setNavigatorOnline = (value: boolean) => {
+      Object.defineProperty(window.navigator, "onLine", {
+        configurable: true,
+        get: () => value,
+      });
+    };
+
+    setNavigatorOnline(true);
+
+    const { result } = renderHook(() => useCategoryManagement());
+
+    setNavigatorOnline(false);
+
+    await waitFor(() => {
+      expect(result.current.offline).toBe(true);
+    });
+
+    if (originalDescriptor) {
+      Object.defineProperty(window.navigator, "onLine", originalDescriptor);
+    } else {
+      setNavigatorOnline(true);
+    }
+  });
 });
