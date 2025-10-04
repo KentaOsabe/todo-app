@@ -166,19 +166,18 @@ export const useCategoryManagement = (): UseCategoryManagementReturn => {
       if (!original) return;
 
       const originalClone: Category = { ...original };
+      const optimisticCategory: Category = {
+        ...originalClone,
+        name: data.name,
+        color: data.color,
+        description: data.description,
+        updatedAt: new Date(),
+      };
 
       // 楽観的更新
       setCategories((prev) =>
         prev.map((category) =>
-          category.id === id
-            ? {
-                ...category,
-                name: data.name,
-                color: data.color,
-                description: data.description,
-                updatedAt: new Date(),
-              }
-            : category,
+          category.id === id ? optimisticCategory : category,
         ),
       );
 
@@ -200,9 +199,17 @@ export const useCategoryManagement = (): UseCategoryManagementReturn => {
             setError(null);
           }
         } catch {
-          // 失敗時は元の状態へロールバック
+          // 失敗時は該当更新が適用されたままの場合のみ元の状態へロールバック
           setCategories((prev) =>
-            prev.map((c) => (c.id === id ? originalClone : c)),
+            prev.map((c) => {
+              if (c.id !== id) return c;
+              const matchesOptimistic =
+                c.name === optimisticCategory.name &&
+                c.color === optimisticCategory.color &&
+                (c.description ?? "") ===
+                  (optimisticCategory.description ?? "");
+              return matchesOptimistic ? originalClone : c;
+            }),
           );
           setError(CATEGORY_ERROR_MESSAGES.update);
         }

@@ -235,6 +235,76 @@ describe("useCategoryManagement", () => {
     });
   });
 
+  // 概要: 複数の更新が並行した場合に最新更新結果を維持することをテスト
+  // 目的: 古いリクエストの失敗で最新の成功結果がロールバックされないことを保証
+  it("前回更新の失敗で最新の成功結果を巻き戻さない", async () => {
+    const cats = await import("../../src/api/categories");
+    const mocked = cats as unknown as {
+      updateCategory: ReturnType<typeof vi.fn>;
+    };
+
+    let rejectFirst: ((reason?: unknown) => void) | undefined;
+    mocked.updateCategory
+      .mockImplementationOnce(
+        () =>
+          new Promise<never>((_resolve, reject) => {
+            rejectFirst = reject;
+          }),
+      )
+      .mockImplementationOnce(
+        async (_id: string, { name }: { name: string }) => ({
+          id: _id,
+          name,
+          color: "#1976d2",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }),
+      );
+
+    const { result } = renderHook(() => useCategoryManagement());
+
+    const firstData: CategoryFormData = {
+      name: "一時変更A",
+      color: "#101010",
+      description: "A",
+    };
+    const secondData: CategoryFormData = {
+      name: "確定変更B",
+      color: "#202020",
+      description: "B",
+    };
+
+    act(() => {
+      result.current.updateCategory("work", firstData);
+    });
+
+    act(() => {
+      result.current.updateCategory("work", secondData);
+    });
+
+    await waitFor(() => {
+      const updated = result.current.categories.find((c) => c.id === "work");
+      expect(updated?.name).toBe("確定変更B");
+      expect(updated?.color).toBe("#202020");
+    });
+
+    await act(async () => {
+      rejectFirst?.(new Error("first failed"));
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(result.current.error).toBe(
+        "カテゴリの更新に失敗しました。再試行してください。",
+      );
+    });
+
+    const finalState = result.current.categories.find((c) => c.id === "work");
+    expect(finalState?.name).toBe("確定変更B");
+    expect(finalState?.color).toBe("#202020");
+    expect(finalState?.description).toBe("B");
+  });
+
   // 概要: 使用状況APIを通じてカテゴリ使用中か判定できることをテスト
   // 目的: inUse が true の場合に正しく検出できることを保証
   it("使用中のカテゴリを正しく検出する", async () => {
