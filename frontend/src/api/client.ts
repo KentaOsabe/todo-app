@@ -7,6 +7,18 @@ export type ApiError = {
   details?: unknown;
 };
 
+/**
+ * APIエラーレスポンスの型定義
+ * Rails APIから返される標準的なエラーレスポンス形式
+ */
+export interface ApiErrorResponse {
+  errors?: Array<{
+    message: string;
+    field?: string; // フィールド固有のエラーの場合
+    code?: string; // エラーコード（将来的な拡張用）
+  }>;
+}
+
 type RequestOptions = {
   headers?: Record<string, string>;
   signal?: AbortSignal;
@@ -20,12 +32,37 @@ function buildUrl(baseURL: string, path: string) {
   return `${baseURL.replace(/\/$/, "")}${path.startsWith("/") ? "" : "/"}${path}`;
 }
 
-async function parseJsonSafe(res: Response) {
+async function parseJsonSafe(res: Response): Promise<ApiErrorResponse | null> {
   try {
-    return await res.json();
+    return (await res.json()) as ApiErrorResponse;
   } catch {
     return null;
   }
+}
+
+/**
+ * APIエラーレスポンスからメッセージを抽出する
+ * @param body - パース済みのエラーレスポンス
+ * @param statusText - HTTPステータステキスト
+ * @returns 抽出されたエラーメッセージ
+ */
+function extractErrorMessage(
+  body: ApiErrorResponse | null,
+  statusText: string,
+): string {
+  // 1. エラー配列の最初のメッセージを優先（空文字列・空白のみは除外）
+  const errorMessage = body?.errors?.[0]?.message?.trim();
+  if (errorMessage) {
+    return errorMessage;
+  }
+
+  // 2. statusTextをフォールバック
+  if (statusText) {
+    return statusText;
+  }
+
+  // 3. デフォルトメッセージ
+  return "Request failed";
 }
 
 function isApiError(value: unknown): value is ApiError {
@@ -38,6 +75,32 @@ function isApiError(value: unknown): value is ApiError {
     (v.type === "network" || v.type === "http" || v.type === "unknown");
   // ApiError と判定するには、最低でも message と (status または type) を持つ必要がある
   return hasMessage && (hasStatus || hasValidType);
+}
+
+/**
+ * 各種エラーを適切なApiError形式に変換する
+ * @param e - キャッチされたエラー
+ * @throws ApiError - 変換されたエラー
+ */
+function handleRequestError(e: unknown): never {
+  // AbortErrorはキャンセル扱い
+  if (isAbortError(e)) {
+    const err: ApiError = { type: "abort", message: "Request aborted" };
+    throw err;
+  }
+  // 既にApiErrorの場合はそのまま再スロー
+  if (isApiError(e)) throw e;
+  // ネットワークエラー
+  if (e instanceof TypeError) {
+    const err: ApiError = { type: "network", message: e.message };
+    throw err;
+  }
+  // その他の未知のエラー
+  const err: ApiError = {
+    type: "unknown",
+    message: e instanceof Error ? e.message : "Unknown error",
+  };
+  throw err;
 }
 
 export function createApiClient(baseURL: string) {
@@ -54,8 +117,7 @@ export function createApiClient(baseURL: string) {
         });
         if (!res.ok) {
           const body = await parseJsonSafe(res);
-          const message =
-            body?.errors?.[0]?.message || res.statusText || "Request failed";
+          const message = extractErrorMessage(body, res.statusText);
           const err: ApiError = {
             status: res.status,
             message,
@@ -66,21 +128,7 @@ export function createApiClient(baseURL: string) {
         }
         return (await res.json()) as T;
       } catch (e: unknown) {
-        // AbortErrorはキャンセル扱い
-        if (isAbortError(e)) {
-          const err: ApiError = { type: "abort", message: "Request aborted" };
-          throw err;
-        }
-        if (isApiError(e)) throw e;
-        if (e instanceof TypeError) {
-          const err: ApiError = { type: "network", message: e.message };
-          throw err;
-        }
-        const err: ApiError = {
-          type: "unknown",
-          message: e instanceof Error ? e.message : "Unknown error",
-        };
-        throw err;
+        handleRequestError(e);
       }
     },
 
@@ -97,33 +145,19 @@ export function createApiClient(baseURL: string) {
           signal: options.signal,
         });
         if (!res.ok) {
-          const data = await parseJsonSafe(res);
-          const message =
-            data?.errors?.[0]?.message || res.statusText || "Request failed";
+          const body = await parseJsonSafe(res);
+          const message = extractErrorMessage(body, res.statusText);
           const err: ApiError = {
             status: res.status,
             message,
             type: "http",
-            details: data,
+            details: body,
           };
           throw err;
         }
         return (await res.json()) as T;
       } catch (e: unknown) {
-        if (isAbortError(e)) {
-          const err: ApiError = { type: "abort", message: "Request aborted" };
-          throw err;
-        }
-        if (isApiError(e)) throw e;
-        if (e instanceof TypeError) {
-          const err: ApiError = { type: "network", message: e.message };
-          throw err;
-        }
-        const err: ApiError = {
-          type: "unknown",
-          message: e instanceof Error ? e.message : "Unknown error",
-        };
-        throw err;
+        handleRequestError(e);
       }
     },
 
@@ -140,33 +174,19 @@ export function createApiClient(baseURL: string) {
           signal: options.signal,
         });
         if (!res.ok) {
-          const data = await parseJsonSafe(res);
-          const message =
-            data?.errors?.[0]?.message || res.statusText || "Request failed";
+          const body = await parseJsonSafe(res);
+          const message = extractErrorMessage(body, res.statusText);
           const err: ApiError = {
             status: res.status,
             message,
             type: "http",
-            details: data,
+            details: body,
           };
           throw err;
         }
         return (await res.json()) as T;
       } catch (e: unknown) {
-        if (isAbortError(e)) {
-          const err: ApiError = { type: "abort", message: "Request aborted" };
-          throw err;
-        }
-        if (isApiError(e)) throw e;
-        if (e instanceof TypeError) {
-          const err: ApiError = { type: "network", message: e.message };
-          throw err;
-        }
-        const err: ApiError = {
-          type: "unknown",
-          message: e instanceof Error ? e.message : "Unknown error",
-        };
-        throw err;
+        handleRequestError(e);
       }
     },
 
@@ -178,33 +198,19 @@ export function createApiClient(baseURL: string) {
           signal: options.signal,
         });
         if (!res.ok) {
-          const data = await parseJsonSafe(res);
-          const message =
-            data?.errors?.[0]?.message || res.statusText || "Request failed";
+          const body = await parseJsonSafe(res);
+          const message = extractErrorMessage(body, res.statusText);
           const err: ApiError = {
             status: res.status,
             message,
             type: "http",
-            details: data,
+            details: body,
           };
           throw err;
         }
         return;
       } catch (e: unknown) {
-        if (isAbortError(e)) {
-          const err: ApiError = { type: "abort", message: "Request aborted" };
-          throw err;
-        }
-        if (isApiError(e)) throw e;
-        if (e instanceof TypeError) {
-          const err: ApiError = { type: "network", message: e.message };
-          throw err;
-        }
-        const err: ApiError = {
-          type: "unknown",
-          message: e instanceof Error ? e.message : "Unknown error",
-        };
-        throw err;
+        handleRequestError(e);
       }
     },
   };
