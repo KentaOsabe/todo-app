@@ -9,7 +9,9 @@ Rails.application.routes.draw do
   # root "posts#index"
 
   namespace :api do
-    resources :categories
+    resources :categories do
+      get :usage, on: :member
+    end
     resources :todos
   end
 end

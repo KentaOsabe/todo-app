@@ -38,6 +38,11 @@ module Api
       head :no_content
     end
 
+    def usage
+      category = Category.find(params[:id])
+      render json: { data: category.usage_summary }
+    end
+
     private
 
     def category_params

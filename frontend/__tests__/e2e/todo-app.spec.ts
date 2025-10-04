@@ -621,4 +621,32 @@ test.describe("Todo App E2E Tests", () => {
     // 削除ボタンが再び表示されることを確認
     await expect(deleteButton).toBeVisible();
   });
+
+  // 概要: 使用中カテゴリの削除ガードをE2Eで確認
+  // 目的: Todoが紐づくカテゴリを削除しようとしたときにブロックされ、エラーメッセージが表示されることを保証
+  test("should block deleting category that is in use", async ({ page }) => {
+    await page.goto("/");
+
+    const input = page.getByPlaceholder("新しいタスクを入力");
+    const categorySelect = page.getByTestId("todoform-category");
+    const addButton = page.getByRole("button", { name: "追加" });
+
+    await input.fill("カテゴリ使用チェック");
+    await categorySelect.click();
+    await page.getByText("仕事").click();
+    await addButton.click();
+
+    await page.goto("/categories");
+
+    page.on("dialog", async (dialog) => {
+      await dialog.accept();
+    });
+
+    const workRow = page.locator("li").filter({ hasText: "仕事" }).first();
+    await workRow.getByRole("button", { name: "削除" }).click();
+
+    await expect(
+      page.getByText("使用中のカテゴリは削除できません"),
+    ).toBeVisible();
+  });
 });

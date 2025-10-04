@@ -1,5 +1,5 @@
 import { api } from "./client";
-import type { Category } from "../types/category";
+import type { Category, CategoryUsage } from "../types/category";
 
 type ApiCategory = {
   id: number | string;
@@ -10,6 +10,14 @@ type ApiCategory = {
 
 type IndexResponse = { data: ApiCategory[] };
 type EntityResponse = { data: ApiCategory };
+type UsageResponse = {
+  data: {
+    in_use: boolean;
+    counts: {
+      todos: number;
+    };
+  };
+};
 
 function toCategory(entity: ApiCategory): Category {
   return {
@@ -20,6 +28,15 @@ function toCategory(entity: ApiCategory): Category {
     description: undefined,
     createdAt: new Date(entity.created_at),
     updatedAt: new Date(entity.updated_at),
+  };
+}
+
+function toCategoryUsage(payload: UsageResponse["data"]): CategoryUsage {
+  return {
+    inUse: payload.in_use,
+    counts: {
+      todos: payload.counts.todos,
+    },
   };
 }
 
@@ -61,6 +78,16 @@ export async function updateCategory(
     { signal: options?.signal },
   );
   return toCategory(res.data);
+}
+
+export async function getCategoryUsage(
+  id: string,
+  options?: { signal?: AbortSignal },
+): Promise<CategoryUsage> {
+  const res = await api.get<UsageResponse>(`/categories/${id}/usage`, {
+    signal: options?.signal,
+  });
+  return toCategoryUsage(res.data);
 }
 
 export async function deleteCategory(

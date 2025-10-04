@@ -3,12 +3,14 @@ import type {
   Category,
   CategoryFormData,
   UseCategoryManagementReturn,
+  DeleteCategoryResult,
 } from "../types/category";
 import {
   listCategories as apiListCategories,
   createCategory as apiCreateCategory,
   updateCategory as apiUpdateCategory,
   deleteCategory as apiDeleteCategory,
+  getCategoryUsage as apiGetCategoryUsage,
 } from "../api/categories";
 import { isAbortError } from "../utils/error";
 
@@ -50,6 +52,7 @@ export const useCategoryManagement = (): UseCategoryManagementReturn => {
     if (typeof navigator === "undefined") return false;
     return navigator.onLine === false;
   });
+  const usageErrorRef = useRef(false);
 
   useEffect(() => {
     let mounted = true;
@@ -184,32 +187,39 @@ export const useCategoryManagement = (): UseCategoryManagementReturn => {
     })();
   }, []);
 
-  const isCategoryInUse = useCallback((id: string): boolean => {
-    // カテゴリ使用状況の確認（サンプルデータで動作）
-    const mockTodos = [
-      { id: "1", categoryId: "work", title: "Test Todo", completed: false },
-    ];
-    return mockTodos.some((todo) => todo.categoryId === id);
+  const isCategoryInUse = useCallback(async (id: string): Promise<boolean> => {
+    usageErrorRef.current = false;
+    try {
+      const usage = await apiGetCategoryUsage(id);
+      return usage.inUse;
+    } catch {
+      usageErrorRef.current = true;
+      setError("カテゴリの使用状況の取得に失敗しました");
+      return false;
+    }
   }, []);
 
   const deleteCategory = useCallback(
-    (id: string): boolean => {
+    async (id: string): Promise<DeleteCategoryResult> => {
       interactedRef.current = true;
       const categoryExists = categories.some((category) => category.id === id);
-      if (!categoryExists) return false;
+      if (!categoryExists) return { status: "notFound" };
 
-      if (isCategoryInUse(id)) return false;
+      usageErrorRef.current = false;
+      const inUse = await isCategoryInUse(id);
+      if (usageErrorRef.current) return { status: "usageCheckFailed" };
+      if (inUse) return { status: "inUse" };
 
-      // 楽観的に削除、API失敗時の復元は今後の改善で対応
-      setCategories((prev) => prev.filter((category) => category.id !== id));
-      (async () => {
-        try {
-          await apiDeleteCategory(id);
-        } catch {
-          // 失敗時の巻き戻しは今後の改善で対応
-        }
-      })();
-      return true;
+      try {
+        await apiDeleteCategory(id);
+        setCategories((prev) => prev.filter((category) => category.id !== id));
+        setError(null);
+        return { status: "success" };
+      } catch {
+        const message = "カテゴリの削除に失敗しました。再試行してください。";
+        setError(message);
+        return { status: "error", message };
+      }
     },
     [categories, isCategoryInUse],
   );

@@ -73,6 +73,20 @@ export async function setupApiMock(page: Page) {
       categories = [...categories, entity];
       return route.fulfill({ status: 201, json: { data: entity } });
     }
+    const usageMatch = pathname.match(/^\/api\/categories\/(.+)\/usage$/);
+    if (usageMatch && method === "GET") {
+      const id = usageMatch[1];
+      const todosCount = todos.filter((t) => t.category_id === id).length;
+      return route.fulfill({
+        json: {
+          data: {
+            in_use: todosCount > 0,
+            counts: { todos: todosCount },
+          },
+        },
+      });
+    }
+
     const catMatch = pathname.match(/^\/api\/categories\/(.+)$/);
     if (catMatch) {
       const id = catMatch[1];

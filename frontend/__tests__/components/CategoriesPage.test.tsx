@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 import { CategoriesPage } from "../../src/components/CategoriesPage";
@@ -41,6 +41,9 @@ vi.mock("../../src/hooks/useCategoryManagement", () => ({
     createCategory: vi.fn(),
     updateCategory: vi.fn(),
     deleteCategory: mockDeleteCategory,
+    error: null,
+    loading: false,
+    offline: false,
   }),
 }));
 
@@ -57,6 +60,7 @@ const renderWithRouter = () => {
 describe("CategoriesPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockDeleteCategory.mockResolvedValue({ status: "success" });
     // window.confirmをモック
     Object.defineProperty(window, "confirm", {
       writable: true,
@@ -121,12 +125,38 @@ describe("CategoriesPage", () => {
 
   // 概要: 削除機能の実行をテスト
   // 目的: 確認ダイアログでOKが選択された場合、削除処理が実行されることを保証（Issue #5要件）
-  it("calls delete function when confirmed", () => {
+  it("calls delete function when confirmed", async () => {
     renderWithRouter();
 
     const deleteButtons = screen.getAllByRole("button", { name: "削除" });
     fireEvent.click(deleteButtons[0]);
 
-    expect(mockDeleteCategory).toHaveBeenCalledWith("work");
+    await waitFor(() => {
+      expect(mockDeleteCategory).toHaveBeenCalledWith("work");
+    });
+  });
+
+  // 概要: 削除成功時のスナックバー表示をテスト
+  // 目的: deleteCategoryが成功した場合に成功メッセージが表示されることを保証
+  it("shows success snackbar when deletion succeeds", async () => {
+    renderWithRouter();
+
+    const deleteButtons = screen.getAllByRole("button", { name: "削除" });
+    fireEvent.click(deleteButtons[0]);
+
+    await screen.findByText("カテゴリを削除しました");
+  });
+
+  // 概要: 使用中カテゴリ削除失敗時のスナックバー表示をテスト
+  // 目的: deleteCategoryがfalseを返した場合にエラーメッセージが表示されることを保証
+  it("shows error snackbar when deletion is blocked", async () => {
+    mockDeleteCategory.mockResolvedValueOnce({ status: "inUse" });
+
+    renderWithRouter();
+
+    const deleteButtons = screen.getAllByRole("button", { name: "削除" });
+    fireEvent.click(deleteButtons[0]);
+
+    await screen.findByText("使用中のカテゴリは削除できません");
   });
 });

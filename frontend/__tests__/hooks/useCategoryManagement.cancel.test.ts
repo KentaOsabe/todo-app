@@ -8,6 +8,7 @@ vi.mock("../../src/api/categories", () => ({
   createCategory: vi.fn(),
   updateCategory: vi.fn(),
   deleteCategory: vi.fn(),
+  getCategoryUsage: vi.fn(),
 }));
 
 describe("useCategoryManagement - cancel", () => {
