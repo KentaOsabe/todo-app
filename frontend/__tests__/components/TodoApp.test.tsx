@@ -1,7 +1,19 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { TodoApp } from "../../src/components/TodoApp";
 import type { Todo } from "../../src/types/todo";
+
+vi.mock("../../src/hooks/useCategoryManagement", () => ({
+  useCategoryManagement: () => ({
+    categories: [],
+    createCategory: vi.fn(),
+    updateCategory: vi.fn(),
+    deleteCategory: vi.fn().mockResolvedValue({ status: "success" }),
+    isCategoryInUse: vi.fn().mockResolvedValue(false),
+    loading: false,
+    error: null,
+    offline: false,
+  }),
+}));
 
 vi.mock("../../src/api/todos", () => ({
   listTodos: vi.fn(),
@@ -10,6 +22,7 @@ vi.mock("../../src/api/todos", () => ({
   deleteTodo: vi.fn(),
 }));
 
+import { TodoApp } from "../../src/components/TodoApp";
 import {
   listTodos,
   createTodo,

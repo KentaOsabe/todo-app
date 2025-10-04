@@ -40,21 +40,36 @@ export const CategoriesPage = () => {
     navigate(`/categories/${id}/edit`);
   };
 
-  const handleDeleteCategory = (id: string) => {
+  const handleDeleteCategory = async (id: string) => {
     const confirmed = confirm("このカテゴリを削除しますか？");
     if (!confirmed) return;
 
-    const success = deleteCategory(id);
-    if (success) {
+    const result = await deleteCategory(id);
+
+    if (result.status === "success") {
       setSnackbar({
         open: true,
         message: "カテゴリを削除しました",
         severity: "success",
       });
     } else {
+      const messageMap: Record<string, string> = {
+        inUse: "使用中のカテゴリは削除できません",
+        usageCheckFailed: "カテゴリの使用状況の取得に失敗しました",
+        error:
+          result.status === "error"
+            ? (result.message ??
+              "カテゴリの削除に失敗しました。再試行してください。")
+            : "",
+        notFound: "指定されたカテゴリが見つかりません",
+      };
+      const fallbackMessage =
+        "カテゴリの削除に失敗しました。再試行してください。";
+      const key = result.status;
+      const resolvedMessage = messageMap[key] || fallbackMessage;
       setSnackbar({
         open: true,
-        message: "使用中のカテゴリは削除できません",
+        message: resolvedMessage || fallbackMessage,
         severity: "error",
       });
     }

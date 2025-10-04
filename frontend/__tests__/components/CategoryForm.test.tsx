@@ -34,8 +34,11 @@ vi.mock("../../src/hooks/useCategoryManagement", () => ({
     categories: mockCategories,
     createCategory: mockCreateCategory,
     updateCategory: mockUpdateCategory,
-    deleteCategory: vi.fn(),
-    isCategoryInUse: vi.fn(),
+    deleteCategory: vi.fn().mockResolvedValue({ status: "success" }),
+    isCategoryInUse: vi.fn().mockResolvedValue(false),
+    error: null,
+    loading: false,
+    offline: false,
   }),
 }));
 

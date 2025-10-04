@@ -4,6 +4,7 @@ import {
   createCategory,
   updateCategory,
   deleteCategory,
+  getCategoryUsage,
 } from "../../src/api/categories";
 
 // 概要: Category APIラッパーの基本操作（一覧/作成/更新/削除）をテスト
@@ -123,5 +124,30 @@ describe("categories api", () => {
       "http://localhost:3001/api/categories/10",
       expect.objectContaining({ method: "DELETE" }),
     );
+  });
+
+  // 概要: GET /categories/:id/usage のレスポンスをCategoryUsageへ変換する
+  // 目的: in_use/counts.todos を camelCase へ変換し、数値が保持されることを保証
+  it("fetches category usage and maps fields", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        data: {
+          in_use: true,
+          counts: {
+            todos: 5,
+          },
+        },
+      }),
+    } as unknown as Response);
+
+    const usage = await getCategoryUsage("10");
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://localhost:3001/api/categories/10/usage",
+      expect.objectContaining({ method: "GET" }),
+    );
+    expect(usage.inUse).toBe(true);
+    expect(usage.counts.todos).toBe(5);
   });
 });

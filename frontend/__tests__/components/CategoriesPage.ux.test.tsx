@@ -35,9 +35,11 @@ describe("CategoriesPage UI/UX", () => {
       categories: [],
       createCategory: vi.fn(),
       updateCategory: vi.fn(),
-      deleteCategory: vi.fn(),
-      isCategoryInUse: vi.fn(),
+      deleteCategory: vi.fn().mockResolvedValue({ status: "success" }),
+      isCategoryInUse: vi.fn().mockResolvedValue(false),
       loading: true,
+      error: null,
+      offline: false,
     });
 
     renderWithRouter();
@@ -55,9 +57,11 @@ describe("CategoriesPage UI/UX", () => {
       categories: [],
       createCategory: vi.fn(),
       updateCategory: vi.fn(),
-      deleteCategory: vi.fn(),
-      isCategoryInUse: vi.fn(),
+      deleteCategory: vi.fn().mockResolvedValue({ status: "success" }),
+      isCategoryInUse: vi.fn().mockResolvedValue(false),
       error: "カテゴリの取得に失敗しました",
+      loading: false,
+      offline: false,
     });
 
     renderWithRouter();
@@ -77,9 +81,11 @@ describe("CategoriesPage UI/UX", () => {
       categories: [],
       createCategory: vi.fn(),
       updateCategory: vi.fn(),
-      deleteCategory: vi.fn(),
-      isCategoryInUse: vi.fn(),
+      deleteCategory: vi.fn().mockResolvedValue({ status: "success" }),
+      isCategoryInUse: vi.fn().mockResolvedValue(false),
       offline: true,
+      loading: false,
+      error: null,
     });
 
     renderWithRouter();

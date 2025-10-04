@@ -1,7 +1,10 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { useCategoryManagement } from "../../src/hooks/useCategoryManagement";
-import type { CategoryFormData } from "../../src/types/category";
+import type {
+  CategoryFormData,
+  DeleteCategoryResult,
+} from "../../src/types/category";
 
 // Category APIをモック
 vi.mock("../../src/api/categories", () => ({
@@ -9,15 +12,22 @@ vi.mock("../../src/api/categories", () => ({
   createCategory: vi.fn(),
   updateCategory: vi.fn(),
   deleteCategory: vi.fn(),
+  getCategoryUsage: vi.fn(),
 }));
 
 describe("useCategoryManagement", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     const cats = await import("../../src/api/categories");
-    (
-      cats.listCategories as unknown as ReturnType<typeof vi.fn>
-    ).mockResolvedValue([
+    const mocked = cats as unknown as {
+      listCategories: ReturnType<typeof vi.fn>;
+      createCategory: ReturnType<typeof vi.fn>;
+      updateCategory: ReturnType<typeof vi.fn>;
+      deleteCategory: ReturnType<typeof vi.fn>;
+      getCategoryUsage: ReturnType<typeof vi.fn>;
+    };
+
+    mocked.listCategories.mockResolvedValue([
       {
         id: "work",
         name: "仕事",
@@ -35,15 +45,29 @@ describe("useCategoryManagement", () => {
         updatedAt: new Date("2024-01-02"),
       },
     ]);
-    (
-      cats.createCategory as unknown as ReturnType<typeof vi.fn>
-    ).mockImplementation(async ({ name }: { name: string }) => ({
-      id: `new-${Date.now()}`,
-      name,
-      color: "#1976d2",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }));
+    mocked.createCategory.mockImplementation(
+      async ({ name }: { name: string }) => ({
+        id: `new-${Date.now()}`,
+        name,
+        color: "#1976d2",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    );
+    mocked.updateCategory.mockImplementation(
+      async (_id: string, { name }: { name: string }) => ({
+        id: _id,
+        name,
+        color: "#1976d2",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    );
+    mocked.deleteCategory.mockResolvedValue(undefined);
+    mocked.getCategoryUsage.mockResolvedValue({
+      inUse: false,
+      counts: { todos: 0 },
+    });
   });
 
   // 概要: useCategoryManagementフックの初期状態をテスト
@@ -54,7 +78,6 @@ describe("useCategoryManagement", () => {
     await waitFor(() => {
       const names = result.current.categories.map((c) => c.name);
       expect(names).toEqual(expect.arrayContaining(["仕事", "プライベート"]));
-      // APIモックが反映されていること（最終件数は2件）
       expect(result.current.categories.length).toBe(2);
     });
   });
@@ -96,7 +119,6 @@ describe("useCategoryManagement", () => {
       result.current.createCategory(optimisticData);
     });
 
-    // API応答前でも即時に反映されること
     const namesNow = result.current.categories.map((c) => c.name);
     expect(namesNow).toEqual(expect.arrayContaining(["楽観カテゴリ"]));
   });
@@ -105,9 +127,10 @@ describe("useCategoryManagement", () => {
   // 目的: エラーパスでUI不整合が残らないことを保証
   it("作成失敗時は楽観的追加がロールバックされる", async () => {
     const cats = await import("../../src/api/categories");
-    (
-      cats.createCategory as unknown as ReturnType<typeof vi.fn>
-    ).mockRejectedValueOnce(new Error("fail"));
+    const mocked = cats as unknown as {
+      createCategory: ReturnType<typeof vi.fn>;
+    };
+    mocked.createCategory.mockRejectedValueOnce(new Error("fail"));
 
     const { result } = renderHook(() => useCategoryManagement());
 
@@ -121,12 +144,10 @@ describe("useCategoryManagement", () => {
       result.current.createCategory(data);
     });
 
-    // 直後は追加されている
     expect(
       result.current.categories.some((c) => c.name === "一時カテゴリ"),
     ).toBe(true);
 
-    // 失敗後にロールバックされる
     await waitFor(() => {
       expect(
         result.current.categories.some((c) => c.name === "一時カテゴリ"),
@@ -140,7 +161,7 @@ describe("useCategoryManagement", () => {
     const { result } = renderHook(() => useCategoryManagement());
 
     const duplicateData: CategoryFormData = {
-      name: "仕事", // 既に存在する名前
+      name: "仕事",
       color: "#000000",
     };
 
@@ -176,51 +197,186 @@ describe("useCategoryManagement", () => {
     });
   });
 
-  // 概要: isCategoryInUse機能をテスト
-  // 目的: カテゴリがTodoで使用されているかを正確に判定することを保証
-  it("使用中のカテゴリを正しく検出する", () => {
+  // 概要: 使用状況APIを通じてカテゴリ使用中か判定できることをテスト
+  // 目的: inUse が true の場合に正しく検出できることを保証
+  it("使用中のカテゴリを正しく検出する", async () => {
+    const cats = await import("../../src/api/categories");
+    const mocked = cats as unknown as {
+      getCategoryUsage: ReturnType<typeof vi.fn>;
+    };
+    mocked.getCategoryUsage.mockImplementation(async (id: string) => ({
+      inUse: id === "work",
+      counts: { todos: id === "work" ? 2 : 0 },
+    }));
+
     const { result } = renderHook(() => useCategoryManagement());
 
-    expect(result.current.isCategoryInUse("work")).toBe(true);
-    expect(result.current.isCategoryInUse("private")).toBe(false);
-    expect(result.current.isCategoryInUse("nonexistent")).toBe(false);
+    let workInUse = false;
+    let privateInUse = true;
+    await act(async () => {
+      workInUse = await result.current.isCategoryInUse("work");
+      privateInUse = await result.current.isCategoryInUse("private");
+    });
+
+    expect(workInUse).toBe(true);
+    expect(privateInUse).toBe(false);
+  });
+
+  // 概要: 使用状況APIの失敗時の挙動をテスト
+  // 目的: エラー発生時にエラーメッセージを設定し、falseを返すことを保証
+  it("使用状況APIが失敗した場合はerrorを設定しfalseを返す", async () => {
+    const cats = await import("../../src/api/categories");
+    const mocked = cats as unknown as {
+      getCategoryUsage: ReturnType<typeof vi.fn>;
+    };
+    mocked.getCategoryUsage.mockRejectedValueOnce(new Error("network"));
+
+    const { result } = renderHook(() => useCategoryManagement());
+
+    let inUseResult = true;
+    await act(async () => {
+      inUseResult = await result.current.isCategoryInUse("work");
+    });
+
+    expect(inUseResult).toBe(false);
+
+    await waitFor(() => {
+      expect(result.current.error).toBe(
+        "カテゴリの使用状況の取得に失敗しました",
+      );
+    });
+  });
+
+  // 概要: 使用状況APIが失敗した場合の削除挙動をテスト
+  // 目的: usageエラー時に削除APIを呼ばず、usageCheckFailedを返すことを保証
+  it("使用状況API失敗時の削除はusageCheckFailedを返す", async () => {
+    const cats = await import("../../src/api/categories");
+    const mocked = cats as unknown as {
+      getCategoryUsage: ReturnType<typeof vi.fn>;
+      deleteCategory: ReturnType<typeof vi.fn>;
+    };
+    mocked.getCategoryUsage.mockRejectedValueOnce(new Error("network"));
+
+    const { result } = renderHook(() => useCategoryManagement());
+
+    let deleteResult: DeleteCategoryResult | null = null;
+    await act(async () => {
+      deleteResult = await result.current.deleteCategory("private");
+    });
+
+    expect(deleteResult).not.toBeNull();
+    const resultValue = deleteResult as DeleteCategoryResult;
+    expect(resultValue).toEqual({ status: "usageCheckFailed" });
+    expect(mocked.deleteCategory).not.toHaveBeenCalled();
+    expect(result.current.categories.some((c) => c.id === "private")).toBe(
+      true,
+    );
+    await waitFor(() => {
+      expect(result.current.error).toBe(
+        "カテゴリの使用状況の取得に失敗しました",
+      );
+    });
   });
 
   // 概要: 使用中カテゴリの削除制限をテスト
-  // 目的: 使用中カテゴリの削除を防止することを保証
-  it("使用中のカテゴリ削除時はfalseを返す", () => {
+  // 目的: 使用中カテゴリの削除を防止し、API削除を呼ばないことを保証
+  it("使用中のカテゴリ削除時はfalseを返し削除APIを呼ばない", async () => {
+    const cats = await import("../../src/api/categories");
+    const mocked = cats as unknown as {
+      getCategoryUsage: ReturnType<typeof vi.fn>;
+      deleteCategory: ReturnType<typeof vi.fn>;
+    };
+    mocked.getCategoryUsage.mockResolvedValue({
+      inUse: true,
+      counts: { todos: 1 },
+    });
+
     const { result } = renderHook(() => useCategoryManagement());
 
-    const deleteResult = result.current.deleteCategory("work");
+    let deleteResult: DeleteCategoryResult | null = null;
+    await act(async () => {
+      deleteResult = await result.current.deleteCategory("work");
+    });
 
-    expect(deleteResult).toBe(false);
-    // 楽観的更新抑止のため、削除されていないことを確認
+    expect(deleteResult).not.toBeNull();
+    const resultValue = deleteResult as DeleteCategoryResult;
+    expect(resultValue).toEqual({ status: "inUse" });
     expect(result.current.categories.some((c) => c.id === "work")).toBe(true);
+    expect(mocked.deleteCategory).not.toHaveBeenCalled();
+    expect(result.current.error).toBeNull();
   });
 
   // 概要: 未使用カテゴリの削除機能をテスト
-  // 目的: 未使用カテゴリが正しく削除されることを保証
+  // 目的: 未使用カテゴリが削除でき、API削除が呼ばれることを保証
   it("未使用のカテゴリは削除できる", async () => {
+    const cats = await import("../../src/api/categories");
+    const mocked = cats as unknown as {
+      deleteCategory: ReturnType<typeof vi.fn>;
+    };
+    mocked.deleteCategory.mockResolvedValue(undefined);
+
     const { result } = renderHook(() => useCategoryManagement());
 
-    const deleteResult = result.current.deleteCategory("private");
+    let deleteResult: DeleteCategoryResult | null = null;
+    await act(async () => {
+      deleteResult = await result.current.deleteCategory("private");
+    });
 
-    expect(deleteResult).toBe(true);
+    expect(deleteResult).not.toBeNull();
+    const resultValue = deleteResult as DeleteCategoryResult;
+    expect(resultValue).toEqual({ status: "success" });
     await waitFor(() => {
       expect(result.current.categories.some((c) => c.id === "private")).toBe(
         false,
       );
     });
+    expect(mocked.deleteCategory).toHaveBeenCalledWith("private");
+  });
+
+  // 概要: 削除API失敗時の挙動をテスト
+  // 目的: APIエラーで削除に失敗した場合にエラーメッセージを設定し、カテゴリが残ることを保証
+  it("削除APIが失敗した場合はエラーメッセージを設定しfalseを返す", async () => {
+    const cats = await import("../../src/api/categories");
+    const mocked = cats as unknown as {
+      deleteCategory: ReturnType<typeof vi.fn>;
+    };
+    mocked.deleteCategory.mockRejectedValueOnce(new Error("server"));
+
+    const { result } = renderHook(() => useCategoryManagement());
+
+    let deleteResult: DeleteCategoryResult | null = null;
+    await act(async () => {
+      deleteResult = await result.current.deleteCategory("private");
+    });
+
+    expect(deleteResult).not.toBeNull();
+    const resultValue = deleteResult as DeleteCategoryResult;
+    expect(resultValue).toEqual({
+      status: "error",
+      message: "カテゴリの削除に失敗しました。再試行してください。",
+    });
+    expect(result.current.categories.some((c) => c.id === "private")).toBe(
+      true,
+    );
+    await waitFor(() => {
+      expect(result.current.error).toBe(
+        "カテゴリの削除に失敗しました。再試行してください。",
+      );
+    });
   });
 
   // 概要: 存在しないカテゴリの削除処理をテスト
-  // 目的: 存在しないカテゴリID指定時の適切な処理を保証
-  it("存在しないカテゴリの削除時はfalseを返す", () => {
+  // 目的: 存在しないカテゴリID指定時にfalseを返すことを保証
+  it("存在しないカテゴリの削除時はfalseを返す", async () => {
     const { result } = renderHook(() => useCategoryManagement());
 
-    const deleteResult = result.current.deleteCategory("nonexistent");
+    let deleteResult: DeleteCategoryResult | null = null;
+    await act(async () => {
+      deleteResult = await result.current.deleteCategory("nonexistent");
+    });
 
-    expect(deleteResult).toBe(false);
+    const resultValue = deleteResult as DeleteCategoryResult;
+    expect(resultValue).toEqual({ status: "notFound" });
     expect(result.current.categories.length).toBeGreaterThan(0);
   });
 
