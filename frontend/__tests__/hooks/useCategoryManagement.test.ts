@@ -152,6 +152,9 @@ describe("useCategoryManagement", () => {
       expect(
         result.current.categories.some((c) => c.name === "一時カテゴリ"),
       ).toBe(false);
+      expect(result.current.error).toBe(
+        "カテゴリの作成に失敗しました。再試行してください。",
+      );
     });
   });
 
@@ -195,6 +198,111 @@ describe("useCategoryManagement", () => {
       expect(updated?.name).toBe("仕事（重要）");
       expect(updated?.color).toBe("#e91e63");
     });
+  });
+
+  // 概要: 更新API失敗時にロールバックされることをテスト
+  // 目的: 更新失敗時にカテゴリ情報が巻き戻り、エラーが通知されることを保証
+  it("更新失敗時は変更前のカテゴリ情報へロールバックしerrorを設定する", async () => {
+    const cats = await import("../../src/api/categories");
+    const mocked = cats as unknown as {
+      updateCategory: ReturnType<typeof vi.fn>;
+    };
+    mocked.updateCategory.mockRejectedValueOnce(new Error("server"));
+
+    const { result } = renderHook(() => useCategoryManagement());
+
+    const original = result.current.categories.find((c) => c.id === "work");
+    expect(original).toBeDefined();
+
+    const updateData: CategoryFormData = {
+      name: "更新失敗カテゴリ",
+      color: "#000000",
+      description: "rollback",
+    };
+
+    act(() => {
+      result.current.updateCategory("work", updateData);
+    });
+
+    await waitFor(() => {
+      const target = result.current.categories.find((c) => c.id === "work");
+      expect(target?.name).toBe(original?.name);
+      expect(target?.color).toBe(original?.color);
+      expect(target?.description).toBe(original?.description);
+      expect(result.current.error).toBe(
+        "カテゴリの更新に失敗しました。再試行してください。",
+      );
+    });
+  });
+
+  // 概要: 複数の更新が並行した場合に最新更新結果を維持することをテスト
+  // 目的: 古いリクエストの失敗で最新の成功結果がロールバックされないことを保証
+  it("前回更新の失敗で最新の成功結果を巻き戻さない", async () => {
+    const cats = await import("../../src/api/categories");
+    const mocked = cats as unknown as {
+      updateCategory: ReturnType<typeof vi.fn>;
+    };
+
+    let rejectFirst: ((reason?: unknown) => void) | undefined;
+    mocked.updateCategory
+      .mockImplementationOnce(
+        () =>
+          new Promise<never>((_resolve, reject) => {
+            rejectFirst = reject;
+          }),
+      )
+      .mockImplementationOnce(
+        async (_id: string, { name }: { name: string }) => ({
+          id: _id,
+          name,
+          color: "#1976d2",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }),
+      );
+
+    const { result } = renderHook(() => useCategoryManagement());
+
+    const firstData: CategoryFormData = {
+      name: "一時変更A",
+      color: "#101010",
+      description: "A",
+    };
+    const secondData: CategoryFormData = {
+      name: "確定変更B",
+      color: "#202020",
+      description: "B",
+    };
+
+    act(() => {
+      result.current.updateCategory("work", firstData);
+    });
+
+    act(() => {
+      result.current.updateCategory("work", secondData);
+    });
+
+    await waitFor(() => {
+      const updated = result.current.categories.find((c) => c.id === "work");
+      expect(updated?.name).toBe("確定変更B");
+      expect(updated?.color).toBe("#202020");
+    });
+
+    await act(async () => {
+      rejectFirst?.(new Error("first failed"));
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(result.current.error).toBe(
+        "カテゴリの更新に失敗しました。再試行してください。",
+      );
+    });
+
+    const finalState = result.current.categories.find((c) => c.id === "work");
+    expect(finalState?.name).toBe("確定変更B");
+    expect(finalState?.color).toBe("#202020");
+    expect(finalState?.description).toBe("B");
   });
 
   // 概要: 使用状況APIを通じてカテゴリ使用中か判定できることをテスト
@@ -259,11 +367,12 @@ describe("useCategoryManagement", () => {
 
     const { result } = renderHook(() => useCategoryManagement());
 
-    let deleteResult: DeleteCategoryResult | null = null;
-    await act(async () => {
-      deleteResult = await result.current.deleteCategory("private");
+    let deletePromise: Promise<DeleteCategoryResult> | null = null;
+    act(() => {
+      deletePromise = result.current.deleteCategory("private");
     });
 
+    const deleteResult = await deletePromise;
     expect(deleteResult).not.toBeNull();
     const resultValue = deleteResult as DeleteCategoryResult;
     expect(resultValue).toEqual({ status: "usageCheckFailed" });
@@ -335,7 +444,9 @@ describe("useCategoryManagement", () => {
 
   // 概要: 削除API失敗時の挙動をテスト
   // 目的: APIエラーで削除に失敗した場合にエラーメッセージを設定し、カテゴリが残ることを保証
-  it("削除APIが失敗した場合はエラーメッセージを設定しfalseを返す", async () => {
+  // 概要: 削除API失敗時にロールバックされることをテスト
+  // 目的: 削除失敗時にカテゴリが復元され、エラーが通知されることを保証
+  it("削除APIが失敗した場合はロールバックしエラーを設定する", async () => {
     const cats = await import("../../src/api/categories");
     const mocked = cats as unknown as {
       deleteCategory: ReturnType<typeof vi.fn>;
@@ -355,13 +466,66 @@ describe("useCategoryManagement", () => {
       status: "error",
       message: "カテゴリの削除に失敗しました。再試行してください。",
     });
-    expect(result.current.categories.some((c) => c.id === "private")).toBe(
-      true,
-    );
+    // 楽観的に一時削除された後、失敗時に復元される
+    const afterDelete = result.current.categories.map((c) => c.id);
+    expect(afterDelete).toContain("private");
     await waitFor(() => {
       expect(result.current.error).toBe(
         "カテゴリの削除に失敗しました。再試行してください。",
       );
+    });
+  });
+
+  // 概要: 直前の失敗エラーが成功操作でクリアされることをテスト
+  // 目的: エラーメッセージが成功後に残留しないことを保証
+  it("直前のエラーは成功操作でクリアされる", async () => {
+    const cats = await import("../../src/api/categories");
+    const mocked = cats as unknown as {
+      createCategory: ReturnType<typeof vi.fn>;
+    };
+    mocked.createCategory
+      .mockRejectedValueOnce(new Error("fail"))
+      .mockResolvedValueOnce({
+        id: "new-success",
+        name: "成功カテゴリ",
+        color: "#1976d2",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+    const { result } = renderHook(() => useCategoryManagement());
+
+    const data: CategoryFormData = {
+      name: "一時カテゴリ",
+      color: "#abcdef",
+      description: "temp",
+    };
+
+    act(() => {
+      result.current.createCategory(data);
+    });
+
+    await waitFor(() => {
+      expect(result.current.error).toBe(
+        "カテゴリの作成に失敗しました。再試行してください。",
+      );
+    });
+
+    const successData: CategoryFormData = {
+      name: "成功カテゴリ",
+      color: "#112233",
+      description: "ok",
+    };
+
+    act(() => {
+      result.current.createCategory(successData);
+    });
+
+    await waitFor(() => {
+      expect(
+        result.current.categories.some((c) => c.name === "成功カテゴリ"),
+      ).toBe(true);
+      expect(result.current.error).toBeNull();
     });
   });
 

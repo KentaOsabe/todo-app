@@ -2,7 +2,10 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 import { CategoriesPage } from "../../src/components/CategoriesPage";
-import type { Category } from "../../src/types/category";
+import type {
+  Category,
+  UseCategoryManagementReturn,
+} from "../../src/types/category";
 
 // useNavigateをモック
 const mockNavigate = vi.fn();
@@ -35,16 +38,10 @@ const mockCategories: Category[] = [
   },
 ];
 
+let mockHookReturn: UseCategoryManagementReturn;
+
 vi.mock("../../src/hooks/useCategoryManagement", () => ({
-  useCategoryManagement: () => ({
-    categories: mockCategories,
-    createCategory: vi.fn(),
-    updateCategory: vi.fn(),
-    deleteCategory: mockDeleteCategory,
-    error: null,
-    loading: false,
-    offline: false,
-  }),
+  useCategoryManagement: () => mockHookReturn,
 }));
 
 const renderWithRouter = () => {
@@ -61,6 +58,15 @@ describe("CategoriesPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockDeleteCategory.mockResolvedValue({ status: "success" });
+    mockHookReturn = {
+      categories: mockCategories,
+      createCategory: vi.fn(),
+      updateCategory: vi.fn(),
+      deleteCategory: mockDeleteCategory,
+      error: null,
+      loading: false,
+      offline: false,
+    };
     // window.confirmをモック
     Object.defineProperty(window, "confirm", {
       writable: true,
@@ -158,5 +164,39 @@ describe("CategoriesPage", () => {
     fireEvent.click(deleteButtons[0]);
 
     await screen.findByText("使用中のカテゴリは削除できません");
+  });
+
+  // 概要: useCategoryManagementのerrorがAlert表示へ反映されることをテスト
+  // 目的: フックで設定されたエラーメッセージがUIに表示されることを保証
+  it("shows alert when hook error is provided", async () => {
+    mockHookReturn = {
+      ...mockHookReturn,
+      error: "カテゴリの更新に失敗しました。再試行してください。",
+      loading: false,
+    };
+
+    renderWithRouter();
+
+    expect(await screen.findByTestId("categories-error")).toHaveTextContent(
+      "カテゴリの更新に失敗しました。再試行してください。",
+    );
+  });
+
+  // 概要: 削除API失敗時のメッセージがSnackbarへ出ることをテスト
+  // 目的: deleteCategoryがerrorステータスとメッセージを返した場合にそのまま表示することを保証
+  it("shows snackbar with delete error message when deleteCategory returns error", async () => {
+    mockDeleteCategory.mockResolvedValueOnce({
+      status: "error",
+      message: "カテゴリの削除に失敗しました。再試行してください。",
+    });
+
+    renderWithRouter();
+
+    const deleteButtons = screen.getAllByRole("button", { name: "削除" });
+    fireEvent.click(deleteButtons[0]);
+
+    await screen.findByText(
+      "カテゴリの削除に失敗しました。再試行してください。",
+    );
   });
 });

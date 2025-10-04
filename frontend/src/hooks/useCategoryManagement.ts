@@ -41,6 +41,12 @@ const DEFAULT_CATEGORIES: Category[] = [
   },
 ];
 
+const CATEGORY_ERROR_MESSAGES = {
+  create: "カテゴリの作成に失敗しました。再試行してください。",
+  update: "カテゴリの更新に失敗しました。再試行してください。",
+  delete: "カテゴリの削除に失敗しました。再試行してください。",
+} as const;
+
 export const useCategoryManagement = (): UseCategoryManagementReturn => {
   // 初期表示は従来通りのデフォルトカテゴリを使い、マウント後にAPI結果で上書き
   const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
@@ -108,11 +114,12 @@ export const useCategoryManagement = (): UseCategoryManagementReturn => {
   const createCategory = useCallback(
     (data: CategoryFormData) => {
       interactedRef.current = true;
+      setError(null);
       // 同じ名前のカテゴリが既に存在するかチェック
       const exists = categories.some((category) => category.name === data.name);
       if (exists) return;
 
-      // 楽観的に即時追加
+      // 楽観的に即時追加し、ロールバック用にtempIdを保持
       const tempId = `temp-cat-${Date.now()}`;
       const optimistic: Category = {
         id: tempId,
@@ -139,53 +146,77 @@ export const useCategoryManagement = (): UseCategoryManagementReturn => {
                 : c,
             ),
           );
+          setError(null);
         } catch {
-          // 失敗時はロールバック
+          // 失敗時は楽観的に追加したカテゴリを除去
           setCategories((prev) => prev.filter((c) => c.id !== tempId));
+          setError(CATEGORY_ERROR_MESSAGES.create);
         }
       })();
     },
     [categories],
   );
 
-  const updateCategory = useCallback((id: string, data: CategoryFormData) => {
-    interactedRef.current = true;
-    // 楽観的更新（今後のエラーUIで巻き戻し対応予定）
-    setCategories((prev) =>
-      prev.map((category) =>
-        category.id === id
-          ? {
-              ...category,
-              name: data.name,
-              color: data.color,
-              description: data.description,
-              updatedAt: new Date(),
-            }
-          : category,
-      ),
-    );
+  const updateCategory = useCallback(
+    (id: string, data: CategoryFormData) => {
+      interactedRef.current = true;
+      setError(null);
 
-    (async () => {
-      try {
-        const updated = await apiUpdateCategory(id, { name: data.name });
-        if (updated) {
+      const original = categories.find((category) => category.id === id);
+      if (!original) return;
+
+      const originalClone: Category = { ...original };
+      const optimisticCategory: Category = {
+        ...originalClone,
+        name: data.name,
+        color: data.color,
+        description: data.description,
+        updatedAt: new Date(),
+      };
+
+      // 楽観的更新
+      setCategories((prev) =>
+        prev.map((category) =>
+          category.id === id ? optimisticCategory : category,
+        ),
+      );
+
+      (async () => {
+        try {
+          const updated = await apiUpdateCategory(id, { name: data.name });
+          if (updated) {
+            setCategories((prev) =>
+              prev.map((c) =>
+                c.id === id
+                  ? {
+                      ...c,
+                      name: updated.name,
+                      // APIからはcolor/descriptionは来ないため、現在の値を維持
+                    }
+                  : c,
+              ),
+            );
+            setError(null);
+          }
+        } catch {
+          // 失敗時は該当更新が適用されたままの場合のみ元の状態へロールバック
           setCategories((prev) =>
-            prev.map((c) =>
-              c.id === id
-                ? {
-                    ...c,
-                    name: updated.name,
-                    // APIからはcolor/descriptionは来ないため、現在の値を維持
-                  }
-                : c,
-            ),
+            prev.map((c) => {
+              if (c.id !== id) return c;
+              const matchesOptimistic =
+                c.name === optimisticCategory.name &&
+                c.color === optimisticCategory.color &&
+                (c.description ?? "") ===
+                  (optimisticCategory.description ?? "");
+              return matchesOptimistic ? originalClone : c;
+            }),
           );
+          setError(CATEGORY_ERROR_MESSAGES.update);
         }
-      } catch {
-        // 失敗時の巻き戻しは今後のUI改善で対応
-      }
-    })();
-  }, []);
+      })();
+    },
+    [categories],
+  );
 
   const isCategoryInUse = useCallback(async (id: string): Promise<boolean> => {
     usageErrorRef.current = false;
@@ -210,13 +241,30 @@ export const useCategoryManagement = (): UseCategoryManagementReturn => {
       if (usageErrorRef.current) return { status: "usageCheckFailed" };
       if (inUse) return { status: "inUse" };
 
+      setError(null);
+
+      const targetIndex = categories.findIndex(
+        (category) => category.id === id,
+      );
+      if (targetIndex === -1) return { status: "notFound" };
+      const targetCategory = { ...categories[targetIndex] };
+
+      // 楽観的削除
+      setCategories((prev) => prev.filter((category) => category.id !== id));
+
       try {
         await apiDeleteCategory(id);
-        setCategories((prev) => prev.filter((category) => category.id !== id));
         setError(null);
         return { status: "success" };
       } catch {
-        const message = "カテゴリの削除に失敗しました。再試行してください。";
+        const message = CATEGORY_ERROR_MESSAGES.delete;
+        setCategories((prev) => {
+          const exists = prev.some((category) => category.id === id);
+          if (exists) return prev;
+          const next = [...prev];
+          next.splice(targetIndex, 0, targetCategory);
+          return next;
+        });
         setError(message);
         return { status: "error", message };
       }
